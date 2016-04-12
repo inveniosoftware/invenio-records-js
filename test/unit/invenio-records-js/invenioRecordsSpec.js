@@ -50,4 +50,8 @@ describe('Unit: testing dependencies', function() {
   it('should load directives module', function() {
     expect(hasModule('invenioRecords.directives')).to.be.ok;
   });
+
+  it('should load factories module', function() {
+    expect(hasModule('invenioRecords.factories')).to.be.ok;
+  });
 });

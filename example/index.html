@@ -48,12 +48,15 @@
           </div>
           <div ng-app="invenioRecordsDemo">
             <invenio-records
-              action-endpoint="http://locahost:5000/"
               extra-params="{}"
-              form="/example/static/json/form.json"
               record='{}'
+              initialization="http://locahost:5000/"
+              form="/example/static/json/form.json"
               schema="/example/static/json/schema.json"
             >
+              <invenio-records-error
+                template="/src/invenio-records-js/templates/error.html">
+              </invenio-records-error>
               <invenio-records-actions
                 template="/src/invenio-records-js/templates/actions.html">
               </invenio-records-actions>
@@ -67,3 +70,4 @@
     </div>
   </body>
 </html>
+

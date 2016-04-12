@@ -32,7 +32,8 @@
    * @description
    *    Invenio records controller.
    */
-  function invenioRecordsController($scope, $q, invenioRecordsAPI) {
+  function invenioRecordsController($scope, $q, invenioRecordsAPI,
+      InvenioRecordsActionsHandler) {
 
     // Parameters
 
@@ -55,6 +56,8 @@
     vm.invenioRecordsError = {};
     // Set notify
     vm.invenioRecordsNotify = false;
+    // Set action handler if everything is ok
+    var Handler = new InvenioRecordsActionsHandler();
 
     ////////////
 
@@ -79,7 +82,7 @@
     }
 
     /**
-     * Initialize the controller
+     *initiaInitialize the controller
      * @memberof invenioRecordsController
      * @function invenioRecordsInitialize
      * @param {Object} evt - The event object.
@@ -96,6 +99,7 @@
         vm.invenioRecordsArgs,
         args
       );
+      // Assign endpoints
       vm.invenioRecordsEndpoints = angular.merge(
         {},
         endpoints
@@ -103,121 +107,85 @@
 
       // Get the schema and the form
       $q.all([
-        invenioRecordsAPI.get(vm.invenioRecordsEndpoints.schema).then(
-          invenioRecordsSetSchema
-        ),
-        invenioRecordsAPI.get(vm.invenioRecordsEndpoints.form).then(
-          invenioRecordsSetForm
-        )
+        invenioRecordsAPI.get(vm.invenioRecordsEndpoints.schema)
+          .then(invenioRecordsSetSchema),
+        invenioRecordsAPI.get(vm.invenioRecordsEndpoints.form)
+          .then(invenioRecordsSetForm)
       ]).then(function() {
         vm.invenioRecordsLoading = false;
+        // Pass the endpoints to the factory
+        Handler.setEndpoint(vm.invenioRecordsEndpoints);
       });
     }
 
-    // FIXME: Add me to a nice factory :)
     /**
      * Initialize the controller
      * @memberof invenioRecordsController
      * @function invenioRecordsActions
      * @param {Object} evt - The event object.
-     * @param {Object} args - The invenio records arguments.
+     * @param {String} type - The invenio action type.
      * @param {Object} successCallback - Call function after success.
      * @param {Object} errorCallback - Call function after error..
      */
-    function invenioRecordsActions(evt, args, successCallback, errorCallback) {
+    function invenioRecordsActions(evt, type, successCallback, errorCallback) {
       // Set loading to true
       vm.invenioRecordsLoading = true;
       // Reset any errors
       vm.invenioRecordsError = {};
       // Reset any notifications
       vm.invenioRecordsNotify = false;
-      // Make the request
-      invenioRecordsAPI.request(args)
-        .then(
-          successCallback || angular.noop,
-          errorCallback || angular.noop
-        ).finally(function() {
-          vm.invenioRecordsLoading = false;
-        });
+      // If the type function exists run it
+      if (typeof Handler[type] === 'function') {
+        // Make the request iff the type exists
+        // otherwise ignore
+        Handler[type]()
+          .then(
+            successCallback || angular.noop,
+            errorCallback || angular.noop
+          ).finally(function() {
+            vm.invenioRecordsLoading = false;
+          });
+      }
     }
 
     /**
-     * Save the record
+     * Action handler
      * @memberof invenioRecordsController
-     * @function actionSave
+     * @function invenioRecordsHandler
      */
-    function actionSave() {
-      // POST
-      var args = angular.copy(vm.invenioRecordsArgs);
-      args.data = angular.copy(vm.invenioRecordsModel);
-      args.method = 'PUT';
+    function invenioRecordsHandler(type) {
 
       /**
        * After a successful request
-       * @memberof actionSave
-       * @function _successfulSave
+       * @memberof invenioRecordsHandler
+       * @function _actionSuccessful
        * @param {Object} response - The action request response.
        */
-      function _successfulSave(response) {
-        vm.invenioRecordsNotify = response.data || 'Success';
-      }
-
-      /**
-       * After an errored request
-       * @memberof actionSave
-       * @function _erroredSave
-       * @param {Object} response - The action request response.
-       */
-      function _erroredSave(response) {
-        vm.invenioRecordsError = response;
-      }
-
-      // Request submission
-      $scope.$broadcast(
-        'invenio.records.action', args, _successfulSave, _erroredSave
-      );
-    }
-
-    /**
-     * Delete the record
-     * @memberof invenioRecordsController
-     * @function actionDelete
-     */
-    function actionDelete() {
-      // DELETE
-      var args = angular.copy(vm.invenioRecordsArgs);
-      args.method = 'DELETE';
-
-      /**
-       * After a successful request
-       * @memberof actionDelete
-       * @function _successfulDelete
-       * @param {Object} response - The action request response.
-       */
-      function _successfulDelete(response) {
-        console.log('Deleting....', response);
+      function _actionSuccessful(response) {
         vm.invenioRecordsNotify = response.data || 'Successfully deleted!';
       }
 
       /**
        * After an errored request
-       * @memberof actionDelete
-       * @function _erroredDelete
+       * @memberof invenioRecordsHandler
+       * @function _actionErrored
        * @param {Object} response - The action request response.
        */
-      function _erroredDelete(response) {
+      function _actionErrored(response) {
         vm.invenioRecordsError = response;
       }
-      // Request deletion
+
+      // Request submission
       $scope.$broadcast(
-        'invenio.records.action', args, _successfulDelete, _erroredDelete
+        'invenio.records.action',
+        type,
+        _actionSuccessful,
+        _actionErrored
       );
     }
 
     // Attach fuctions to the scope
-
-    vm.actionSave = actionSave;
-    vm.actionDelete = actionDelete;
+    vm.actionHandler = invenioRecordsHandler;
 
     ////////////
 
@@ -234,7 +202,12 @@
   }
 
   // Inject depedencies
-  invenioRecordsController.$inject = ['$scope', '$q', 'invenioRecordsAPI'];
+  invenioRecordsController.$inject = [
+    '$scope',
+    '$q',
+    'invenioRecordsAPI',
+    'invenioRecordsActionsHandler',
+  ];
 
   ////////////
 
@@ -245,10 +218,11 @@
    * @name invenioRecordsAPI
    * @namespace invenioRecordsAPI
    * @param {service} $http - Angular http requests service.
+   * @param {service} $q - Angular promise service.
    * @description
    *     Call the records API
    */
-  function invenioRecordsAPI($http) {
+  function invenioRecordsAPI($http, $q) {
 
     /**
      * Make a request to the API
@@ -268,6 +242,12 @@
      * @returns {service} promise
      */
     function get(url) {
+      // If the url is empty just return a resolved promise
+      if (url === null) {
+        var deferred = $q.defer();
+        deferred.resolve();
+        return deferred.promise;
+      }
       // Sugar goodies, just make a GET request
       var args = {
         url: url,
@@ -282,7 +262,103 @@
     };
   }
 
-  invenioRecordsAPI.$inject = ['$http'];
+  invenioRecordsAPI.$inject = ['$http', '$q'];
+
+  ////////////
+
+  // Factories
+
+  /**
+   * @ngdoc factory
+   * @namei invenioRecordsActionsHandler
+   * @namespace invenioRecordsActionsHandler
+   * @param {service} $http - Angular http requests service.
+   * @param {service} $q - Angular promise service.
+   * @description
+   *     Call the records API
+   */
+  function invenioRecordsActionsHandler(invenioRecordsAPI, $q) {
+
+    function Actions(endpoints) {
+      this.endpoints = angular.copy(endpoints);
+    }
+
+    function _handler(args) {
+      return invenioRecordsAPI.request(args);
+    }
+
+    Actions.prototype.setEndpoint = function(endpoints) {
+      this.endpoints = angular.merge(
+        {},
+        this.endpoints,
+        endpoints
+      );
+    };
+
+    Actions.prototype.getEndpoint = function() {
+      return this.endpoints;
+    };
+
+    Actions.prototype.create = function() {
+      var that = this;
+      var deferred = $q.defer();
+      if(that.endpoints.action !== null) {
+        // If the action url is present just return it
+        deferred.resolve(that.endpoints.action);
+      } else {
+        // If the action url doesnt exists request it
+        invenioRecordsAPI.request({
+          url: that.endpoints.initialization,
+          method: 'POST'
+        }).then(function(response) {
+          that.setEndpoint({
+            action: response.self
+          });
+          // Resolve the request
+          deferred.resolve(response.self);
+        });
+      }
+      return deferred.promise;
+    };
+
+    // FIXME: Add a wrapper
+    Actions.prototype.save = function() {
+      var deferred = $q.defer();
+      this.create().then(function(action) {
+        _handler({
+          url: action,
+          method: 'POST'
+        }).then(function(response) {
+          deferred.resolve(response);
+        }, function(response) {
+          deferred.reject(response);
+        });
+      });
+      return deferred.promise;
+    };
+
+    // FIXME: Add a wrapper
+    Actions.prototype.delete = function() {
+      var deferred = $q.defer();
+      this.create().then(function(action) {
+        _handler({
+          url: action,
+          method: 'DELETE'
+        }).then(function(response) {
+          deferred.resolve(response);
+        }, function(response) {
+          deferred.reject(response);
+        });
+      });
+      return deferred.promise;
+    };
+
+    ////////////
+
+    return Actions;
+  }
+
+  invenioRecordsActionsHandler.$inject = ['invenioRecordsAPI', '$q'];
 
   ////////////
 
@@ -297,9 +373,10 @@
    * @example
    *    Usage:
    *     <invenio-records
-   *      action-endpoint=""
+   *      action="http://"
    *      extra-params='{}'
    *      form="http://"
+   *      initialization="http://"
    *      record='record'
    *      schema="http://">
    *     </invenio-records>
@@ -318,9 +395,9 @@
      * @param {invenioRecordsController} vm - Invenio records controller.
      */
     function link(scope, element, attrs, vm) {
+
       // Upadate parameters
       var collectedArgs = {
-        url: attrs.actionEndpoint,
         method: attrs.actionMethod || 'GET'
       };
 
@@ -338,9 +415,12 @@
 
       // Get the endpoints for schemas
       var endpoints = {
-        schema: attrs.schema,
-        form: attrs.form
+        action: attrs.action || null,
+        form: attrs.form || null,
+        initialization: attrs.initialization || null,
+        schema: attrs.schema || null
       };
+
       // Get the record object
       var record = JSON.parse(attrs.record || '{}');
 
@@ -358,6 +438,46 @@
       controller: 'invenioRecordsController',
       controllerAs: 'vm',
       link: link,
+    };
+  }
+
+  /**
+   * @ngdoc directive
+   * @name invenioRecordsError
+   * @description
+   *    The invenio records error directive handler
+   * @namespace invenioRecordsError
+   * @example
+   *    Usage:
+   *     <invenio-records-error
+   *      template="http://error.html">
+   *     </invenio-records-error>
+   *
+   */
+  function invenioRecordsError() {
+
+    // Functions
+
+    /**
+     * Choose template for record error
+     * @memberof invenioRecordsError
+     * @param {service} element - Element that this direcive is assigned to.
+     * @param {service} attrs - Attribute of this element.
+     * @example
+     *    Minimal template `template.html` usage
+     *    {{ vm.invenioRecordsError }}
+     */
+    function templateUrl(element, attrs) {
+      return attrs.template;
+    }
+
+    ////////////
+
+    return {
+      restrict: 'AE',
+      scope: false,
+      require: '^invenioRecords',
+      templateUrl: templateUrl,
     };
   }
 
@@ -449,6 +569,10 @@
 
   // Put everything together
 
+  // Factories
+  angular.module('invenioRecords.factories', [])
+    .factory('invenioRecordsActionsHandler', invenioRecordsActionsHandler);
+
   // Controllers
   angular.module('invenioRecords.controllers', [])
     .controller('invenioRecordsController', invenioRecordsController);
@@ -460,12 +584,14 @@
   // Directives
   angular.module('invenioRecords.directives', [])
     .directive('invenioRecords', invenioRecords)
+    .directive('invenioRecordsError', invenioRecordsError)
     .directive('invenioRecordsActions', invenioRecordsActions)
     .directive('invenioRecordsForm', invenioRecordsForm);
 
   // Setup everyhting
   angular.module('invenioRecords' , [
     'invenioRecords.services',
+    'invenioRecords.factories',
     'invenioRecords.controllers',
     'invenioRecords.directives',
   ]);
