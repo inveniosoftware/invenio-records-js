@@ -1,0 +1,68 @@
+# -*- coding: utf-8 -*-
+#
+# This file is part of Invenio.
+# Copyright (C) 2016 CERN.
+#
+# Invenio is free software; you can redistribute it
+# and/or modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of the
+# License, or (at your option) any later version.
+#
+# Invenio is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Invenio; if not, write to the
+# Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+# MA 02111-1307, USA.
+#
+# In applying this license, CERN does not
+# waive the privileges and immunities granted to it by virtue of its status
+# as an Intergovernmental Organization or submit itself to any jurisdiction.
+
+notifications:
+  email: false
+
+sudo: false
+
+language: node_js
+
+node_js:
+  - '5.4.1'
+
+env:
+  global:
+    - GH_REF: 'github.com/inveniosoftware/invenio-records-js.git'
+    - secure: 'dMVZ1jSH9iOe5KiLAGh7/nXLc2dXC+X5/d4s8R4Daf4wk2aMD7hNeLI0qn9aaCP9qokbGYE93dXuNEGw5hdD2meuy+sgAw5xW5wK9RqB9DIP6ehextRPzE24PeSWnaIHNe5CmJog5mAfkEW5+ic8j00rK9hs6COzUsl6d1S+TIfp9aNt/FXLs3T/g5AtxfHq4oH8XZx2J9VXFpCNUM0y1sGVBbhvosfdaoYK+yn6z22/yr63OHGyJEErnqT42TPSc1ycBhUoKC78unZVlUv/D1Tw85towRWrp8+3lfNku+UZ9TXKO+OjKuxzLGIi9iIwgM6VIT8jTWzxgAGL43l4IAhsbVFy+K50Ii507LnjSj4ZlbQSZu2V016UOdmykVzidGfTlH+fTEfNWJOBIVGgXP45i18s1L7867IvD4b+SGV4IWthpq22UlSggyBGr6jcgkIzydAQT+MHye4onJWcM+Oyqvr1qs4GxFp3+p1EDtbYpYKdPl7ADOsfrRy//Szx4f8Y5YQQI+nIItjQ1gia+0nM4hf+kedt0Uc+UEK6FCW4GpL5AzHsrXXWAjVYRJzLuLolBQKeArJDBr4GVspt4a0vL+2N29fL4tYnt4OUUijqjNCgflKzkQDBvSJ3a6meDMO9+G3ZatEYhDTP8/tCumLyVEIi+VivkKsybhMXh9A='
+
+before_script:
+  - 'npm install -g gulp'
+
+before_install:
+  - 'npm i'
+
+script:
+  - 'npm test'
+
+after_success:
+  - 'npm run-script coverage'
+
+before_deploy:
+  - 'npm run-script build'
+
+deploy:
+  provider: npm
+  skip_cleanup: true
+  email: info@invenio-software.org
+  api_key:
+    secure: mVjw6DB1kmDXjaJy5KfL6ztRHll0WTecU2DuJyVadx6E00snROlx9TDE+OkIKNbh4aJBfok2JvtiVzh5J11X2hQ0mJs/oKkv49Tbqf44CGpmm1sRSYdnGQZpkqSLvLeMi/R2V81vrC3Cf9+08wJCRagQR5Pm0/h9vmP8DJFwoD1JfB7K8coo8KO1M9npNxA/d6jYe1Z6seT7bKVrnRVlJZFpPRPwoYg1cO7j1ZZ1ovpkqYLHSpHAC8RdJBplx6/gBtdcfvUAb+0vlKkRD47beuydzPPSy7x3iK9sr6+8RpAKNL5m7avCh0sYy/VG0G0YIvCwAshA+PHHrifBWuamgQdadKtStSL3rc/DvNm+q2q6EUk1ACWA9o0SVPqMKjjLoyv9eHUbUV6amZWU4LrEZ3tZb2C0QCYbAbh5rLEn107cFTqQ+S45nui8XBWFTo0H7tfgKiNZ/mSVyhgLTYDdr8xXak3kvnXzCjHop/nSIFx+dnmiw9YHq6QQ58l//MYS90zHjSGBZASKyGb6h1P+5ZILcNdGYNTXp98faC0DXrcJgVcq8qLcHhyPkrG0segiA1o4y/u4R4tmJFrifjPwNt/KTWe9411gI6NxWatDB4AZkD2CdXEUScWGy6g7AcMXJJDYHDhEu+lsUEjzDeUwZQ4W4YawzGOwpJwJihU1Y70=
+  on:
+    tags: true
+    repo: inveniosoftware/invenio-records-js
+    branch: master
+    node: '5.4.1'
+
+after_deploy:
+  - ./deploy.sh
