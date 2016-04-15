@@ -82,7 +82,7 @@
     }
 
     /**
-     *initiaInitialize the controller
+     * Initialize the controller
      * @memberof invenioRecordsController
      * @function invenioRecordsInitialize
      * @param {Object} evt - The event object.

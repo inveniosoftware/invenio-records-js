@@ -79,10 +79,10 @@ gulp.task('build', ['clean.build'], function (done) {
 gulp.task('build.src', function() {
   gulp.src(sourceFiles)
     .pipe(plugins.plumber())
-    .pipe(plugins.concat('invenio-search-js.js'))
+    .pipe(plugins.concat('invenio-records-js.js'))
     .pipe(gulp.dest('./dist/'))
     .pipe(plugins.uglify())
-    .pipe(plugins.rename('invenio-search-js.min.js'))
+    .pipe(plugins.rename('invenio-records-js.min.js'))
     .pipe(plugins.header(licences.javascript))
     .pipe(gulp.dest('./dist'));
 });
