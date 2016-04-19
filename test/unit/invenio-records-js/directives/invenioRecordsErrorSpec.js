@@ -23,7 +23,7 @@
 
 'use strict';
 
-describe('Unit: testing directive invenio-records', function() {
+describe('Unit: testing directive invenio-records-error', function() {
 
   var $compile;
   var $httpBackend;
@@ -44,9 +44,6 @@ describe('Unit: testing directive invenio-records', function() {
     $rootScope = _$rootScope_;
     // The http backend
     $httpBackend = _$httpBackend_;
-    // Attach it
-    scope = $rootScope;
-
     // Expected requests responses
     var schema = {
       question: 'Do you bleed?',
@@ -56,14 +53,12 @@ describe('Unit: testing directive invenio-records', function() {
       jarvis: 'Where is Jessica Jones and Luke?',
       answer: 'They are with the Punisher'
     };
+
     $httpBackend.whenGET('/example/static/json/form.json').respond(200, form);
     $httpBackend.whenGET('/example/static/json/schema.json').respond(200, schema);
-  }));
 
-  it('should trigger init event', function() {
-    // Spy the broadcast
-    var spy = sinon.spy($rootScope, '$broadcast')
-
+    // Attach it
+    scope = $rootScope;
     // Complile&Digest here to catch the event
     // The directive's template
     template = '<invenio-records ' +
@@ -71,72 +66,24 @@ describe('Unit: testing directive invenio-records', function() {
               'record=\'{}\' ' +
               'initialization="http://locahost:5000/" ' +
               'form="/example/static/json/form.json" ' +
-              'schema="/example/static/json/schema.json" ' +
-            '></invenio-records>';
+              'schema="/example/static/json/schema.json">' +
+              '<invenio-records-error ' +
+              'template="src/invenio-records-js/templates/error.html"> '+
+              '</invenio-records-error>'+
+            '</invenio-records>';
     // Compile
     template = $compile(template)(scope);
     // Digest
     scope.$digest();
 
-    // Check if the event has been triggered
-    spy.should.have.been.calledOnce;
-  });
+  }));
 
-  it('should update the parameters', function() {
-    // Complile&Digest here to catch the event
-    // The directive's template
-    template = '<invenio-records ' +
-              'extra-params="{}" ' +
-              'record=\'{"title_statement": {"title": "Jessica Jones Vol. 1"}}\' ' +
-              'form="/example/static/json/form.json" ' +
-              'schema="/example/static/json/schema.json" ' +
-            '></invenio-records>';
-
-    // Compile
-    template = $compile(template)(scope);
-    // Digest
-    scope.$digest();
-
-    // The record model should have the title
-    expect(scope.vm.invenioRecordsModel.title_statement.title)
-      .to.be.equal('Jessica Jones Vol. 1');
-
-    // The endpoints should be updated
-    var endpoints = {
-      action: null,
-      form: '/example/static/json/form.json',
-      initialization: null,
-      schema: '/example/static/json/schema.json',
-    }
-
-    expect(scope.vm.invenioRecordsEndpoints)
-      .to.deep.equal(endpoints);
-  });
-
-  it('should have action url', function() {
-    // Complile&Digest here to catch the event
-    // The directive's template
-    template = '<invenio-records ' +
-              'action="gotham city://batman" ' +
-              'extra-params=\'{"suicide squad": "Harley Quinn"}\' ' +
-              'form="/example/static/json/form.json" ' +
-              'schema="/example/static/json/schema.json" ' +
-            '></invenio-records>';
-
-    // Compile
-    template = $compile(template)(scope);
-    // Digest
-    scope.$digest();
-
-    // The args should be the following
-    var args = {
-      url: '/',
-      method: 'GET',
-      params: {
-        'suicide squad': 'Harley Quinn'
-      }
+  it('should display the error', function() {
+    var message = {
+      message: 'Harley Quinn looking for Jessica Jones'
     };
-    expect(scope.vm.invenioRecordsArgs)
-      .to.deep.equal(args);
+    scope.$broadcast('invenio.records.error', message);
+    expect(scope.vm.invenioRecordsError)
+      .to.deep.equal(message);
   });
 });

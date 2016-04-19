@@ -47,15 +47,19 @@
     };
 
     // The form model
-    vm.invenioRecordsModel = {};
-    // Set loading
-    vm.invenioRecordsLoading = true;
+    vm.invenioRecordsModel = null;
     // Set endpoints
-    vm.invenioRecordsEndpoints = {};
-    // Set errors
-    vm.invenioRecordsError = {};
-    // Set notify
-    vm.invenioRecordsNotify = false;
+    vm.invenioRecordsEndpoints = null;
+
+    // Record Loading - If the invenioRecords has the state loading
+    vm.invenioRecordsLoading = true;
+
+    // Record Error - if the invenioRecords has any error
+    vm.invenioRecordsError = null;
+
+    // Record Warn - if the invenioRecords has any warning
+    vm.invenioRecordsWarning = null;
+
     // Set action handler if everything is ok
     var Handler = new InvenioRecordsActionsHandler();
 
@@ -84,13 +88,13 @@
     /**
      * Initialize the controller
      * @memberof invenioRecordsController
-     * @function invenioRecordsInitialize
+     * @function invenioRecordsInit
      * @param {Object} evt - The event object.
      * @param {Object} args - The invenio records arguments.
      * @param {Object} endpoints - The invenio endpoints for actions.
      * @param {Object} record - The record object.
      */
-    function invenioRecordsInitialize(evt, args, endpoints, record) {
+    function invenioRecordsInit(evt, args, endpoints, record) {
       // Assign the model
       vm.invenioRecordsModel = angular.copy(record);
       // Assign the args
@@ -112,14 +116,15 @@
         invenioRecordsAPI.get(vm.invenioRecordsEndpoints.form)
           .then(invenioRecordsSetForm)
       ]).then(function() {
-        vm.invenioRecordsLoading = false;
         // Pass the endpoints to the factory
         Handler.setEndpoint(vm.invenioRecordsEndpoints);
+        // Remove loading state
+        $scope.$broadcast('invenio.records.loading.stop');
       });
     }
 
     /**
-     * Initialize the controller
+     * Records actions
      * @memberof invenioRecordsController
      * @function invenioRecordsActions
      * @param {Object} evt - The event object.
@@ -129,11 +134,7 @@
      */
     function invenioRecordsActions(evt, type, successCallback, errorCallback) {
       // Set loading to true
-      vm.invenioRecordsLoading = true;
-      // Reset any errors
-      vm.invenioRecordsError = {};
-      // Reset any notifications
-      vm.invenioRecordsNotify = false;
+      $scope.$broadcast('invenio.records.loading.start');
       // If the type function exists run it
       if (typeof Handler[type] === 'function') {
         // Make the request iff the type exists
@@ -143,7 +144,8 @@
             successCallback || angular.noop,
             errorCallback || angular.noop
           ).finally(function() {
-            vm.invenioRecordsLoading = false;
+            // Set loading to stop
+            $scope.$broadcast('invenio.records.loading.stop');
           });
       }
     }
@@ -162,7 +164,7 @@
        * @param {Object} response - The action request response.
        */
       function _actionSuccessful(response) {
-        vm.invenioRecordsNotify = response.data || 'Successfully deleted!';
+        $scope.$broadcast('invenio.records.warn', response);
       }
 
       /**
@@ -172,7 +174,7 @@
        * @param {Object} response - The action request response.
        */
       function _actionErrored(response) {
-        vm.invenioRecordsError = response;
+        $scope.$broadcast('invenio.records.error', response);
       }
 
       // Request submission
@@ -184,6 +186,57 @@
       );
     }
 
+
+    /**
+      * Change the state to loading
+      * @memberof invenioRecordsController
+      * @function invenioRecordsLoadingStart
+      * @param {Object} evt - The event object.
+      */
+    function invenioRecordsLoadingStart(evt) {
+      // Set the state to loading
+      vm.invenioRecordsLoading = true;
+    }
+
+    /**
+      * Change the state to normal
+      * @memberof invenioRecordsController
+      * @function invenioRecordsLoadingStop
+      * @param {Object} evt - The event object.
+      */
+    function invenioRecordsLoadingStop(evt) {
+      // Set the state to normal
+      vm.invenioRecordsLoading = false;
+    }
+
+    /**
+      * Show error messages
+      * @memberof invenioRecordsController
+      * @function invenioRecordsError
+      * @param {Object} evt - The event object.
+      * @param {Object} error - The object with the errors.
+      */
+    function invenioRecordsError(evt, error) {
+      // Reset the error
+      vm.invenioRecordsError = null;
+      // Attach the error to the scope
+      vm.invenioRecordsError = error;
+    }
+
+    /**
+      * Show warning messages
+      * @memberof invenioRecordsController
+      * @function invenioRecordsWarn
+      * @param {Object} evt - The event object.
+      * @param {Object} warning - The object with the warnings.
+      */
+    function invenioRecordsWarn(evt, warning) {
+      // Reset the error
+      vm.invenioRecordsWarning = null;
+      // Attach the warning to the scope
+      vm.invenioRecordsWarning = warning;
+    }
+
     // Attach fuctions to the scope
     vm.actionHandler = invenioRecordsHandler;
 
@@ -191,14 +244,21 @@
 
     // Listeners
 
-    // When invenio.records initialization requested
-    $scope.$on(
-      'invenio.records.initialization', invenioRecordsInitialize
-    );
     // When invenio.records action requested
-    $scope.$on(
-      'invenio.records.action', invenioRecordsActions
-    );
+    $scope.$on('invenio.records.action', invenioRecordsActions);
+
+    // When the module initialized
+    $scope.$on('invenio.records.init', invenioRecordsInit);
+
+    // When there is an error
+    $scope.$on('invenio.records.error', invenioRecordsError);
+    // When there is a warning
+    $scope.$on('invenio.records.warn', invenioRecordsWarn);
+
+    // When loading requested to start
+    $scope.$on('invenio.records.loading.start', invenioRecordsLoadingStart);
+    // When loading requested to stop
+    $scope.$on('invenio.records.loading.stop', invenioRecordsLoadingStop);
   }
 
   // Inject depedencies
@@ -272,7 +332,7 @@
    * @ngdoc factory
    * @namei invenioRecordsActionsHandler
    * @namespace invenioRecordsActionsHandler
-   * @param {service} $http - Angular http requests service.
+   * @param {service} invenioRecordsAPI - Invenio Records API.
    * @param {service} $q - Angular promise service.
    * @description
    *     Call the records API
@@ -426,7 +486,7 @@
 
       // Spread the love of initialization
       scope.$broadcast(
-        'invenio.records.initialization', args, endpoints, record
+        'invenio.records.init', args, endpoints, record
       );
     }
 
