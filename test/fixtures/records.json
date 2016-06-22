@@ -173,15 +173,6 @@
           "name": "id",
           "type": "string"
         },
-        "owners": {
-          "items": [
-            {
-              "type": "integer"
-            }
-          ],
-          "name": "owners",
-          "type": "array"
-        },
         "pid": {
           "name": "pid",
           "properties": {

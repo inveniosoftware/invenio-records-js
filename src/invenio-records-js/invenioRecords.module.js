@@ -136,7 +136,7 @@
         if(vm.invenioRecordsEndpoints.self === undefined || type === 'publish') {
           // If the action url doesnt exists request it
           invenioRecordsAPI.request({
-            method: 'POST',
+            method: vm.invenioRecordsModel.recid ? 'GET' : 'POST',
             url: vm.invenioRecordsEndpoints.initialization,
             data: {},
             headers: vm.invenioRecordsArgs.headers || {}
@@ -225,7 +225,8 @@
       function actionSuccessful(response) {
         $rootScope.$broadcast('invenio.records.alert', {
           type: 'success',
-          data: response.data
+          data: response.data,
+          action: type
         });
 
         // Trigger successful event for action
@@ -243,7 +244,8 @@
       function actionErrored(response) {
         $rootScope.$broadcast('invenio.records.alert', {
           type: 'danger',
-          data: response.data
+          data: response.data,
+          action: type
         });
 
         if (response.data.status === 400 && response.data.errors) {
@@ -514,7 +516,7 @@
      * Initialize directive
      * @memberof invenioRecords
      * @param {service} scope -  The scope of this element.
-     * @param {service} element - Element that this direcive is assigned to.
+     * @param {service} element - Element that this directive is assigned to.
      * @param {service} attrs - Attribute of this element.
      * @param {invenioRecordsController} vm - Invenio records controller.
      */
@@ -525,6 +527,11 @@
         method: attrs.actionMethod || 'GET'
       };
 
+      // Get alert messages
+      var responseParams = {
+        responseParams: JSON.parse(attrs.responseParams || '{}')
+      };
+
       // Get any extras
       var extraParams = JSON.parse(attrs.extraParams || '{}');
 
@@ -532,12 +539,12 @@
       var args = angular.merge(
         {},
         collectedArgs,
+        responseParams,
         extraParams
       );
 
       // Get the endpoints for schemas
       var endpoints = {
-        action: attrs.action || null,
         form: attrs.form || null,
         initialization: attrs.initialization || null,
         schema: attrs.schema || null
@@ -583,7 +590,7 @@
     /**
      * Choose template for record loading
      * @memberof invenioRecordsLoading
-     * @param {service} element - Element that this direcive is assigned to.
+     * @param {service} element - Element that this directive is assigned to.
      * @param {service} attrs - Attribute of this element.
      * @example
      *    Minimal template `template.html` usage
@@ -623,7 +630,7 @@
     /**
      * Choose template for record alert
      * @memberof invenioRecordsAlert
-     * @param {service} element - Element that this direcive is assigned to.
+     * @param {service} element - Element that this directive is assigned to.
      * @param {service} attrs - Attribute of this element.
      * @example
      *    Minimal template `template.html` usage
@@ -663,7 +670,7 @@
     /**
      * Choose template for record actions
      * @memberof invenioRecordsActions
-     * @param {service} element - Element that this direcive is assigned to.
+     * @param {service} element - Element that this directive is assigned to.
      * @param {service} attrs - Attribute of this element.
      * @example
      *    Minimal template `template.html` usage
@@ -696,14 +703,63 @@
    *     </invenio-records-form>
    *
    */
-  function invenioRecordsForm() {
+  function invenioRecordsForm($http, schemaFormDecorators, invenioRecordsAPI) {
 
     // Functions
 
     /**
+     * Initialize directive
+     * @memberof invenioRecords
+     * @param {service} scope -  The scope of this element.
+     * @param {service} element - Element that this directive is assigned to.
+     * @param {service} attrs - Attribute of this element.
+     * @param {invenioRecordsController} vm - Invenio records controller.
+     */
+    function link(scope, element, attrs, vm) {
+      if (attrs.formTemplates) {
+        var formTemplates = JSON.parse(attrs.formTemplates);
+        for (var formElem in formTemplates) {
+          if (formTemplates.hasOwnProperty(formElem)) {
+            schemaFormDecorators.decorator()[formElem.replace('_', '-')]
+              .template = formTemplates[formElem];
+          }
+        }
+      }
+
+      /**
+       * Get property from object
+       * @memberof invenioRecordsFrom
+       * @function getProp
+       * @param {Object} obj - The object.
+       * @param {String} prop - The property path to retrieve.
+       */
+      var getProp = function (obj, prop) {
+        return prop.split('.').reduce(function(data, item) {
+          return data[item];
+        }, obj);
+      };
+
+      scope.autocompleteSuggest = function(uri, options, name, value) {
+        return function() {
+          return invenioRecordsAPI.request({url: uri, method: 'GET'}).then(function (response) {
+            var data = getProp(response.data, options);
+            return {
+              data: data.map(function (option) {
+                return {
+                  name: getProp(option, name),
+                  value: getProp(option, value)
+                };
+              })
+            };
+          });
+        };
+      };
+    }
+
+    /**
      * Choose template for record form
      * @memberof invenioRecordsForm
-     * @param {service} element - Element that this direcive is assigned to.
+     * @param {service} element - Element that this directive is assigned to.
      * @param {service} attrs - Attribute of this element.
      * @example
      *    Minimal template `template.html` usage
@@ -721,11 +777,15 @@
 
     return {
       restrict: 'AE',
+      link: link,
       scope: false,
       require: '^invenioRecords',
       templateUrl: templateUrl,
     };
   }
+
+  invenioRecordsForm.$inject = ['$http', 'schemaFormDecorators', 'invenioRecordsAPI'];
+
 
   ///////////////
 
@@ -740,7 +800,7 @@
     .service('invenioRecordsAPI', invenioRecordsAPI);
 
   // Directives
-  angular.module('invenioRecords.directives', [])
+  angular.module('invenioRecords.directives', ['schemaForm'])
     .directive('invenioRecords', invenioRecords)
     .directive('invenioRecordsAlert', invenioRecordsAlert)
     .directive('invenioRecordsLoading', invenioRecordsLoading)
