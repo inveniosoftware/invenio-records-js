@@ -55,7 +55,7 @@ before_deploy:
 deploy:
   provider: npm
   skip_cleanup: true
-  email: info@invenio-software.org
+  email: info@inveniosoftware.org
   api_key:
     secure: UT7NNFeh44SPUTThZu44fHj2aj1+U8GRrLkI0nRrGLQlk243417lNGy9+nkEhwYx+tdoQPK+euFuA3uKJxPnR8lf64CrALkIdTkDRB7/9QgyceGU38l0MpxBh/SlRBkUIuxebnR9ktARX5o8QO+1UsgATlwx8j+nvtBs1RoVxIZmlvHSx4Aga+9VnYzsH7TZTv7emYoICeKKbEG68c+oyzEUG6AOrY2rK6zv/vczES2i0aco0z6Vh6R+gU/PsSzuNoN5lCZ7s90gCkUMNL0Jbtz3VrT7+UNkALXlZxdFw/ffxmJqnP788NYTfy8iLfFnhsWXi2bxvKU8BpCLXRSRijPF6hiBE5mfWX6o79DE+ipVlX5AvGZkXYpWMQ/kDmCIZuidPqVb5P7+HZQze72ZNa9Wg/crwbTDY9CX2qfEiGMB1O3e5mP0ZA/gfh5qHBElj4cl551q/2y5t40cRWl3+tKWcvbbo4O6sIA2vZWP4TWD2E3L/k6XEzyFCbqrNdBgBQ3t4P0v6MKZ5zIrIDuECVXiR01goKalxw+nUGUeBWnma4oEU4vlgw55pZbyI9WZDGgY1t17myLjf317U463ijeY1k2MjF6rKTTWH/Ea66uHCv8lw3+8Ak5do0dqkGM45bLG9c7cjFZ6NOhJWSnq/xnReDXoh9+R6aVvgHZu3XU=
   on:
