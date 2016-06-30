@@ -337,7 +337,7 @@
    * @description
    *     Call the records API
    */
-  function invenioRecordsActionsHandler(invenioRecordsAPI, $q) {
+  function invenioRecordsActionsHandler(invenioRecordsAPI, $q, $rootScope) {
 
     function Actions(endpoints) {
       this.endpoints = angular.copy(endpoints);
@@ -374,6 +374,7 @@
           that.setEndpoint({
             action: response.self
           });
+          $rootScope.$broadcast('invenio.deposit.init', response);
           // Resolve the request
           deferred.resolve(response.self);
         });
@@ -418,7 +419,9 @@
     return Actions;
   }
 
-  invenioRecordsActionsHandler.$inject = ['invenioRecordsAPI', '$q'];
+  invenioRecordsActionsHandler.$inject = [
+    'invenioRecordsAPI', '$q', '$rootScope'
+  ];
 
   ////////////
 
@@ -496,7 +499,7 @@
       restrict: 'AE',
       scope: false,
       controller: 'invenioRecordsController',
-      controllerAs: 'vm',
+      controllerAs: 'recordsVM',
       link: link,
     };
   }
