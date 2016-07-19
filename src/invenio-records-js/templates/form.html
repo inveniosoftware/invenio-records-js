@@ -1,1 +1,7 @@
-<form sf-schema="vm.invenioRecordsSchema" sf-form="vm.invenioRecordsForm" sf-model="vm.invenioRecordsModel"></form>
+<form
+  name="depositionForm"
+  sf-schema="recordsVM.invenioRecordsSchema"
+  sf-form="recordsVM.invenioRecordsForm"
+  sf-model="recordsVM.invenioRecordsModel"
+  sf-options="{ formDefaults: { disableSuccessState: true, feedback: false, onChange: 'recordsVM.removeValidationMessage(modelValue,form)', ngModelOptions: { updateOn: 'default blur', allowInvalid: true} } }"
+  ></form>

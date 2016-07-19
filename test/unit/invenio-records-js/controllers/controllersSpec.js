@@ -48,22 +48,22 @@ describe('Unit: testing controllers', function() {
 
   it('should have the default parameters', function() {
     // Expect loading to be ``true``
-    expect(ctrl.invenioRecordsLoading).to.be.equal(true);
-
+    expect(ctrl.invenioRecordsLoading).to.be.true;
     // Expect error to be ``null``
-    expect(ctrl.invenioRecordsError).to.be.equal(null);
-    // Expect notify to be ``null``
-    expect(ctrl.invenioRecordsWarning).to.be.equal(null);
+    expect(ctrl.invenioRecordsAlert).to.be.null;
 
     // Expect model to be ``{}``
-    expect(ctrl.invenioRecordsModel).to.be.equal(null);
+    expect(ctrl.invenioRecordsModel).to.be.null;
     // Expect endpoints to be ``{}``
-    expect(ctrl.invenioRecordsEndpoints).to.be.equal(null);
+    expect(ctrl.invenioRecordsEndpoints).to.be.null;
 
     // Expect the request args
     var args = {
       url: '/',
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
     };
     expect(ctrl.invenioRecordsArgs).to.deep.equal(args);
   });
@@ -71,35 +71,49 @@ describe('Unit: testing controllers', function() {
   it('should trigger the events', function() {
 
     // Trigger error event
-    scope.$broadcast('invenio.records.error', {
-      message: 'Bruce Wayne is not Superman Clark Kent is, dah!'
+    scope.$broadcast('invenio.records.alert', {
+      type: 'success',
+      data: {
+        message: 'Bruce Wayne is not Superman Clark Kent is, dah!'
+      }
     });
 
-    // Expect error to be the above message
-    expect(ctrl.invenioRecordsError.message).to.be.equal(
+    expect(ctrl.invenioRecordsAlert.data.message).to.be.equal(
       'Bruce Wayne is not Superman Clark Kent is, dah!'
-    );
-
-    // Trigger warning event
-    scope.$broadcast('invenio.records.warn', {
-      message: 'Tell me, do you bleed?'
-    });
-
-    // Expect warning to be the above message
-    expect(ctrl.invenioRecordsWarning.message).to.be.equal(
-      'Tell me, do you bleed?'
     );
 
     // Trigger loading start event
     scope.$broadcast('invenio.records.loading.start');
 
     // Expect loading to be ``false``
-    expect(ctrl.invenioRecordsLoading).to.be.equal(true);
+    expect(ctrl.invenioRecordsLoading).to.be.true;
 
     // Trigger loading start event
     scope.$broadcast('invenio.records.loading.stop');
 
     // Expect loading to be ``false``
-    expect(ctrl.invenioRecordsLoading).to.be.equal(false);
+    expect(ctrl.invenioRecordsLoading).to.be.false;
+  });
+
+  it('should receive update endpoints event', function() {
+
+    var response = {
+      self: '/self',
+      edit: '/edit',
+      files: '/files',
+      publish: '/publish',
+      discard: '/discard'
+    };
+    // Trigger error event
+    scope.$broadcast('invenio.records.endpoints.updated', response);
+
+    // Expect the endpoints to be updated
+    expect(ctrl.invenioRecordsEndpoints.self).to.not.be.undefined;
+    expect(ctrl.invenioRecordsEndpoints.publish).to.not.be.undefined;
+    expect(ctrl.invenioRecordsEndpoints.files).to.not.be.undefined;
+    expect(ctrl.invenioRecordsEndpoints.discard).to.not.be.undefined;
+    // The delete is been added afterwards as an action and has the
+    // some url as ``.self``
+    expect(ctrl.invenioRecordsEndpoints.delete).to.not.be.undefined;
   });
 });

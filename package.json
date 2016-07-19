@@ -13,7 +13,8 @@
   "dependencies": {
     "angular": "=1.4.8",
     "angular-mocks": "=1.4.8",
-    "angular-scenario": "=1.4.8"
+    "angular-scenario": "=1.4.8",
+    "karma-read-json": "^1.1.0"
   },
   "devDependencies": {
     "chai": "^1.9.1",

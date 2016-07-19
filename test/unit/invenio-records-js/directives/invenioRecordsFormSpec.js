@@ -44,18 +44,24 @@ describe('Unit: testing directive invenio-records-form', function() {
     $rootScope = _$rootScope_;
     // The http backend
     $httpBackend = _$httpBackend_;
-    // Expected requests responses
-    var schema = {
-      question: 'Do you bleed?',
-      answer: 'You will!'
-    };
-    var form = {
-      jarvis: 'Where is Jessica Jones and Luke?',
-      answer: 'They are with the Punisher'
-    };
+   // Expected requests responses
 
-    $httpBackend.whenGET('/example/static/json/form.json').respond(200, form);
-    $httpBackend.whenGET('/example/static/json/schema.json').respond(200, schema);
+    // Record Schema
+    var schema = readJSON('test/fixtures/records.json');
+    // Form Schema
+    var form = readJSON('test/fixtures/form.json');
+    // Initialization
+    var init = readJSON('test/fixtures/init.json');
+
+
+    // When request record schema
+    $httpBackend.whenGET('/static/json/records.json').respond(200, schema);
+
+    // When request /form
+    $httpBackend.whenGET('/static/json/form.json').respond(200, form);
+
+    // When requesting initialization
+    $httpBackend.whenPOST('/api/deposit/init').respond(200, init);
 
     // Attach it
     scope = $rootScope;
@@ -63,9 +69,9 @@ describe('Unit: testing directive invenio-records-form', function() {
     // Complile&Digest here to catch the event
     // The directive's template
     template = '<invenio-records ' +
-              'action="gotham city://batman" ' +
-              'form="/example/static/json/form.json" ' +
-              'schema="/example/static/json/schema.json">' +
+              'form="/static/json/form.json" ' +
+              'initialization="/api/deposit/init" ' +
+              'schema="/static/json/records.json"> ' +
               '<invenio-records-form ' +
               'template="src/invenio-records-js/templates/form.html"> '+
               '</invenio-records-form>'+

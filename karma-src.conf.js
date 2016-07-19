@@ -42,6 +42,7 @@ module.exports = function(config) {
       'karma-mocha',
       'karma-ng-html2js-preprocessor',
       'karma-phantomjs-launcher',
+      'karma-read-json',
       'karma-sinon-chai',
       'karma-spec-reporter',
     ],
@@ -51,9 +52,11 @@ module.exports = function(config) {
       'node_modules/jquery/dist/jquery.js',
       'node_modules/angular/angular.js',
       'node_modules/angular-mocks/angular-mocks.js',
+      'node_modules/karma-read-json/karma-read-json.js',
       'src/**/*.js',
       'src/**/*.html',
       'test/unit/**/*.js',
+      {pattern: 'test/fixtures/**/*.json', included: false},
     ],
 
 
