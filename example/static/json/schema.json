@@ -36,7 +36,14 @@
           }
         }
       }
+    },
+    "license": {
+      "type": "uiselect",
+      "options": {
+        "asyncCallback": "autocompleteSuggest('/licenses', 'hits', 'output', 'payload')"
+      }
     }
+
   },
   "required": [
     "main_entry_personal_name"

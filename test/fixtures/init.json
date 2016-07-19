@@ -1,0 +1,24 @@
+{
+  "created": "2016-06-27T13:35:49.835088+00:00",
+  "files": [],
+  "id": 45779,
+  "links": {
+    "discard": "http://localhost:5000/api/deposit/depositions/45779/actions/discard",
+    "edit": "http://localhost:5000/api/deposit/depositions/45779/actions/edit",
+    "files": "http://localhost:5000/api/deposit/depositions/45779/files",
+    "publish": "http://localhost:5000/api/deposit/depositions/45779/actions/publish",
+    "self": "http://localhost:5000/api/deposit/depositions/45779"
+  },
+  "metadata": {
+    "prereserve_doi": {
+      "doi": "10.5072/zenodo.45779",
+      "recid": 45779
+    }
+  },
+  "modified": "2016-06-27T13:35:49.835095+00:00",
+  "owner": 1,
+  "record_id": 45779,
+  "state": "unsubmitted",
+  "submitted": false,
+  "title": ""
+}

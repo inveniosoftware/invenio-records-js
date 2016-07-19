@@ -45,14 +45,10 @@ describe('Unit: testing directive invenio-records-error', function() {
     // The http backend
     $httpBackend = _$httpBackend_;
     // Expected requests responses
-    var schema = {
-      question: 'Do you bleed?',
-      answer: 'You will!'
-    };
-    var form = {
-      jarvis: 'Where is Jessica Jones and Luke?',
-      answer: 'They are with the Punisher'
-    };
+    // Record Schema
+    var schema = readJSON('test/fixtures/records.json');
+    // Form Schema
+    var form = readJSON('test/fixtures/form.json');
 
     $httpBackend.whenGET('/example/static/json/form.json').respond(200, form);
     $httpBackend.whenGET('/example/static/json/schema.json').respond(200, schema);
@@ -80,10 +76,13 @@ describe('Unit: testing directive invenio-records-error', function() {
 
   it('should display the error', function() {
     var message = {
-      message: 'Harley Quinn looking for Jessica Jones'
+      type: 'danger',
+      data:{
+        message: 'Harley Quinn looking for Jessica Jones'
+      }
     };
-    scope.$broadcast('invenio.records.error', message);
-    expect(scope.vm.invenioRecordsError)
-      .to.deep.equal(message);
+    scope.$broadcast('invenio.records.alert', message);
+    expect(scope.recordsVM.invenioRecordsAlert.data)
+      .to.deep.equal(message.data);
   });
 });

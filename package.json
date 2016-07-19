@@ -13,9 +13,20 @@
   "dependencies": {
     "angular": "=1.4.8",
     "angular-mocks": "=1.4.8",
-    "angular-scenario": "=1.4.8"
+    "angular-scenario": "=1.4.8",
+    "angular-schema-form": "~0.8.13",
+    "angular-strap": "~2.3.9",
+    "karma-read-json": "^1.1.0"
   },
   "devDependencies": {
+    "angular-animate": "^1.4.8",
+    "angular-sanitize": "^1.5.7",
+    "angular-schema-form-dynamic-select": "^0.13.1",
+    "angular-strap": "^2.3.9",
+    "angular-translate": "^2.11.0",
+    "angular-ui-select": "^0.12.100",
+    "angular-ui-utils": "^0.1.1",
+    "angular-underscore": "0.0.3",
     "chai": "^1.9.1",
     "chai-jquery": "^2.0.0",
     "coveralls": "^2.11.4",
@@ -50,7 +61,8 @@
     "phantomjs": "^1.9.18",
     "run-sequence": "^1.0.2",
     "sinon": "^1.10.3",
-    "sinon-chai": "^2.5.0"
+    "sinon-chai": "^2.5.0",
+    "underscore": "^1.8.3"
   },
   "engines": {
     "node": ">=0.10"

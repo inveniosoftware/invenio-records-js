@@ -28,6 +28,7 @@ describe('Unit: testing directive invenio-records-actions', function() {
   var $compile;
   var $httpBackend;
   var $rootScope;
+  var $timeout;
   var scope;
   var template;
 
@@ -37,36 +38,36 @@ describe('Unit: testing directive invenio-records-actions', function() {
   // Load the templates
   beforeEach(angular.mock.module('templates'));
 
-  beforeEach(inject(function(_$compile_, _$rootScope_, _$httpBackend_) {
+  beforeEach(inject(function(_$compile_, _$rootScope_, _$timeout_, _$httpBackend_) {
     // Template compiler
     $compile = _$compile_;
     // The Scope
     $rootScope = _$rootScope_;
     // The http backend
     $httpBackend = _$httpBackend_;
-    // Expected requests responses
-    var schema = {
-      data: {
-        question: 'Do you bleed?',
-        answer: 'You will!'
-      }
-    };
-    var form = {
-      data: {
-        jarvis: 'Where is Jessica Jones and Luke?',
-        answer: 'They are with the Punisher'
-      }
-    };
+    // The timeout service
+    $timeout = _$timeout_;
+
+   // Expected requests responses
+    // Record Schema
+    var schema = readJSON('test/fixtures/records.json');
+    // Form Schema
+    var form = readJSON('test/fixtures/form.json');
+    // Initialization
+    var init = readJSON('test/fixtures/init.json');
 
     $httpBackend.whenGET('/example/static/json/form.json').respond(200, form);
+    $httpBackend.whenGET('/example/templates/default.html').respond(200, '');
     $httpBackend.whenGET('/example/static/json/schema.json').respond(200, schema);
-    $httpBackend.whenPOST('gotham city://batman/sucess').respond(200, {});
-    $httpBackend.whenPOST('metropolitan://superman/init').respond(200, {
-      self: 'gotham city://batman/sucess'
-    });
+    $httpBackend.whenPOST('metropolitan://superman/init').respond(200, init);
+    $httpBackend.whenPOST('/api/deposit/init').respond(200, init);
+    $httpBackend.whenPOST('http://localhost:5000/api/deposit/depositions/45779/actions/publish').respond(200, {});
     $httpBackend.whenDELETE('gotham city://batman/sucess').respond(200, {});
-    $httpBackend.whenPOST('gotham city://batman/error').respond(500, {
-      message: 'Bruce Wayne is with Wonder Woman and Superman right now!'
+    $httpBackend.whenPOST('gotham city://batman/sucess').respond(200, init);
+    $httpBackend.whenPOST('gotham city://batman/error').respond(400, {
+      status: 400,
+      message: 'Bruce Wayne is with Wonder Woman and Superman right now!',
+      errors: ['error']
     });
     $httpBackend.whenDELETE('gotham city://batman/error').respond(500, {
       message: 'Bruce Wayne is with Wonder Woman and Superman right now!'
@@ -94,15 +95,15 @@ describe('Unit: testing directive invenio-records-actions', function() {
     // Digest
     scope.$digest();
     // The rendered buttons should be ``2``
-    expect(template.find('.btn').length).to.be.equal(2);
+    expect(template.find('.btn').length).to.be.equal(5);
   });
 
   it('should trigger action event for save', function() {
     // Complile&Digest here to catch the event
     // The directive's template
     template = '<invenio-records ' +
-              'action="gotham city://batman/sucess" ' +
               'form="/example/static/json/form.json" ' +
+              'initialization="/api/deposit/init" ' +
               'schema="/example/static/json/schema.json"> ' +
               '<invenio-records-actions ' +
               'template="src/invenio-records-js/templates/actions.html"> '+
@@ -114,7 +115,7 @@ describe('Unit: testing directive invenio-records-actions', function() {
     scope.$digest();
 
      // Spy the broadcast
-    var spy = sinon.spy($rootScope, '$broadcast')
+    var spy = sinon.spy($rootScope, '$broadcast');
 
     // Flash responses to trigger the events
     $httpBackend.flush();
@@ -127,15 +128,16 @@ describe('Unit: testing directive invenio-records-actions', function() {
     // Flash responses to trigger the events
     $httpBackend.flush();
     // Expect no errors
-    expect(scope.vm.invenioRecordsError).to.be.equal(null);
+    expect(scope.recordsVM.invenioRecordsAlert).to.be.equal(null);
   });
 
   it('should trigger action event for delete', function() {
     // Complile&Digest here to catch the event
     // The directive's template
     template = '<invenio-records ' +
-              'action="gotham city://batman/sucess" ' +
+              'initialization="gotham city://batman/sucess" ' +
               'form="/example/static/json/form.json" ' +
+              'record=\'{"a": "", "b": "c"}\' ' +
               'schema="/example/static/json/schema.json"> ' +
               '<invenio-records-actions ' +
               'template="src/invenio-records-js/templates/actions.html"> '+
@@ -159,15 +161,16 @@ describe('Unit: testing directive invenio-records-actions', function() {
 
     // Flash responses to trigger the events
     $httpBackend.flush();
+    $timeout.flush();
     // Expect no errors
-    expect(scope.vm.invenioRecordsError).to.be.equal(null);
+    expect(scope.recordsVM.invenioRecordsAlert).to.be.equal(null);
   });
 
   it('should trigger error for delete', function() {
     // Complile&Digest here to catch the event
     // The directive's template
     template = '<invenio-records ' +
-              'action="gotham city://batman/error" ' +
+              'initialization="gotham city://batman/error" ' +
               'form="/example/static/json/form.json" ' +
               'schema="/example/static/json/schema.json"> ' +
               '<invenio-records-actions ' +
@@ -190,14 +193,14 @@ describe('Unit: testing directive invenio-records-actions', function() {
     var error = 'Bruce Wayne is with Wonder Woman and Superman right now!';
 
     // Expect the message to be
-    expect(scope.vm.invenioRecordsError.data.message).to.be.equal(error);
+    expect(scope.recordsVM.invenioRecordsAlert.data.message).to.be.equal(error);
   });
 
   it('should trigger error for save', function() {
     // Complile&Digest here to catch the event
     // The directive's template
     template = '<invenio-records ' +
-              'action="gotham city://batman/error" ' +
+              'initialization="gotham city://batman/error" ' +
               'form="/example/static/json/form.json" ' +
               'schema="/example/static/json/schema.json"> ' +
               '<invenio-records-actions ' +
@@ -220,7 +223,7 @@ describe('Unit: testing directive invenio-records-actions', function() {
     var error = 'Bruce Wayne is with Wonder Woman and Superman right now!';
 
     // Expect the message to be
-    expect(scope.vm.invenioRecordsError.data.message).to.be.equal(error);
+    expect(scope.recordsVM.invenioRecordsAlert.data.message).to.be.equal(error);
   });
 
   it('should trigger action with create', function() {
@@ -240,7 +243,7 @@ describe('Unit: testing directive invenio-records-actions', function() {
     scope.$digest();
 
      // Spy the broadcast
-    var spy = sinon.spy($rootScope, '$broadcast')
+    var spy = sinon.spy($rootScope, '$broadcast');
 
     // Flash responses to trigger the events
     $httpBackend.flush();

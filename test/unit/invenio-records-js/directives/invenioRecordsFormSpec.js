@@ -31,12 +31,11 @@ describe('Unit: testing directive invenio-records-form', function() {
   var scope;
   var template;
 
-  // Inject the angular module
-  beforeEach(angular.mock.module('invenioRecords'));
-
-  // Load the templates
-  beforeEach(angular.mock.module('templates'));
-
+  // Inject the angular modules
+  beforeEach(angular.mock.module('invenioRecords', 'templates', 'schemaForm',
+    'ngSanitize', 'mgcrea.ngStrap', 'mgcrea.ngStrap.modal',
+    'pascalprecht.translate', 'ui.select', 'mgcrea.ngStrap.select'));
+  
   beforeEach(inject(function(_$compile_, _$rootScope_, _$httpBackend_) {
     // Template compiler
     $compile = _$compile_;
@@ -45,17 +44,52 @@ describe('Unit: testing directive invenio-records-form', function() {
     // The http backend
     $httpBackend = _$httpBackend_;
     // Expected requests responses
-    var schema = {
-      question: 'Do you bleed?',
-      answer: 'You will!'
-    };
-    var form = {
-      jarvis: 'Where is Jessica Jones and Luke?',
-      answer: 'They are with the Punisher'
+
+    // Record Schema
+    var schema = readJSON('test/fixtures/records.json');
+    // Form Schema
+    var form = readJSON('test/fixtures/form.json');
+    // Initialization
+    var init = readJSON('test/fixtures/init.json');
+    // Autocompletion response
+    var autocompleteResponse = {
+      a: {
+        b:[{
+          c:{d:{
+              name: 'hello'
+            }},
+          e:{f:{
+              value: 'world'
+            }}
+        },
+        {
+        c:{d:{
+            name: 'hi'
+          }},
+        e:{f:{
+            value: 'werld'
+          }}
+        }]
+      }
     };
 
-    $httpBackend.whenGET('/example/static/json/form.json').respond(200, form);
-    $httpBackend.whenGET('/example/static/json/schema.json').respond(200, schema);
+
+    // When request record schema
+    $httpBackend.whenGET('/static/json/records.json').respond(200, schema);
+
+    // When request /form
+    $httpBackend.whenGET('/static/json/form.json').respond(200, form);
+
+    // When requesting initialization
+    $httpBackend.whenPOST('/api/deposit/init').respond(200, init);
+    
+    // When autocompleting
+    $httpBackend.whenGET('/autocomplete').respond(200, autocompleteResponse);
+
+    $httpBackend.whenGET('/static/node_modules/invenio-records-js/dist/templates/default.html').respond(200, '');
+    $httpBackend.whenGET('/test/template/alert.html').respond(200, '');
+    $httpBackend.whenGET('/test/template/loading.html').respond(200, '');
+    $httpBackend.whenGET('directives/decorators/bootstrap/fieldset.html').respond(200, '');
 
     // Attach it
     scope = $rootScope;
@@ -63,22 +97,48 @@ describe('Unit: testing directive invenio-records-form', function() {
     // Complile&Digest here to catch the event
     // The directive's template
     template = '<invenio-records ' +
-              'action="gotham city://batman" ' +
-              'form="/example/static/json/form.json" ' +
-              'schema="/example/static/json/schema.json">' +
+              'form="/static/json/form.json" ' +
+              'initialization="/api/deposit/init" ' +
+              'schema="/static/json/records.json"> ' +
               '<invenio-records-form ' +
-              'template="src/invenio-records-js/templates/form.html"> '+
-              '</invenio-records-form>'+
+              'template="src/invenio-records-js/templates/form.html" ' +
+              'form-templates=\'{"default": "/static/node_modules/' +
+              'invenio-records-js/dist/templates/default.html"}\'>' +
+              '</invenio-records-form>' +
+              '<invenio-records-alert ' +
+              'template="/test/template/alert.html">' +
+              '</invenio-records-alert>' +
+              '<invenio-records-loading ' +
+              'template="/test/template/loading.html">' +
+              '</invenio-records-loading>' +
             '</invenio-records>';
     // Compile
     template = $compile(template)(scope);
 
     // Digest
+    $httpBackend.flush();
     scope.$digest();
   }));
 
   it('should have the action buttons', function() {
     // Should have ``form`` element
     expect(template.find('form').length).to.be.equal(1);
+  });
+
+  it('should handle autocomplete', function() {
+    var data;
+
+    scope.autocompleteSuggest('/autocomplete', 'a.b', 'c.d.name', 'e.f.value')().then(function(response) {
+      data = response;
+    });
+
+    $httpBackend.flush();
+
+    expect(data).to.deep.equal({
+      data: [
+        {name: 'hello', value: 'world'},
+        {name: 'hi', value: 'werld'},
+      ]
+    });
   });
 });
