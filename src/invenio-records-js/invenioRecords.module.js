@@ -183,7 +183,6 @@
             if (type === 'publish') {
               method = 'POST';
             }
-            // ¯\_(ツ)_/¯ Wait until it's been indexed
             $timeout(function() {
               invenioRecordsAPI.request({
                 url: vm.invenioRecordsEndpoints[type],
@@ -359,7 +358,7 @@
         $scope.depositionForm.$setPristine();
         // Set the form to submitted if it's published
         if (type === 'publish') {
-          $scope.depositionFrom.$setSubmitted();
+          $scope.depositionForm.$setSubmitted();
         }
       }
       // Set the form to $invalid if it's deleted/discarded

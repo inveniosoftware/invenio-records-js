@@ -35,7 +35,7 @@ describe('Unit: testing directive invenio-records-form', function() {
   beforeEach(angular.mock.module('invenioRecords', 'templates', 'schemaForm',
     'ngSanitize', 'mgcrea.ngStrap', 'mgcrea.ngStrap.modal',
     'pascalprecht.translate', 'ui.select', 'mgcrea.ngStrap.select'));
-  
+
   beforeEach(inject(function(_$compile_, _$rootScope_, _$httpBackend_) {
     // Template compiler
     $compile = _$compile_;
@@ -82,11 +82,11 @@ describe('Unit: testing directive invenio-records-form', function() {
 
     // When requesting initialization
     $httpBackend.whenPOST('/api/deposit/init').respond(200, init);
-    
+
     // When autocompleting
     $httpBackend.whenGET('/autocomplete').respond(200, autocompleteResponse);
 
-    $httpBackend.whenGET('/static/node_modules/invenio-records-js/dist/templates/default.html').respond(200, '');
+   $httpBackend.whenGET('/static/node_modules/invenio-records-js/dist/templates/default.html').respond(200, '');
     $httpBackend.whenGET('/test/template/alert.html').respond(200, '');
     $httpBackend.whenGET('/test/template/loading.html').respond(200, '');
     $httpBackend.whenGET('directives/decorators/bootstrap/fieldset.html').respond(200, '');
@@ -120,7 +120,7 @@ describe('Unit: testing directive invenio-records-form', function() {
     scope.$digest();
   }));
 
-  it('should have the action buttons', function() {
+  it('should have the form element', function() {
     // Should have ``form`` element
     expect(template.find('form').length).to.be.equal(1);
   });

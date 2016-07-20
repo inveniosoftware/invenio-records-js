@@ -3,11 +3,11 @@
   "files": [],
   "id": 45779,
   "links": {
-    "discard": "http://localhost:5000/api/deposit/depositions/45779/actions/discard",
-    "edit": "http://localhost:5000/api/deposit/depositions/45779/actions/edit",
-    "files": "http://localhost:5000/api/deposit/depositions/45779/files",
-    "publish": "http://localhost:5000/api/deposit/depositions/45779/actions/publish",
-    "self": "http://localhost:5000/api/deposit/depositions/45779"
+    "discard": "/api/deposit/depositions/45779/actions/discard",
+    "edit": "/api/deposit/depositions/45779/actions/edit",
+    "files": "/api/deposit/depositions/45779/files",
+    "publish": "/api/deposit/depositions/45779/actions/publish",
+    "self": "/api/deposit/depositions/45779"
   },
   "metadata": {
     "prereserve_doi": {
