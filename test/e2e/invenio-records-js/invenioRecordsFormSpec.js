@@ -86,7 +86,7 @@ describe('Unit: testing directive invenio-records-form', function() {
     // When autocompleting
     $httpBackend.whenGET('/autocomplete').respond(200, autocompleteResponse);
 
-   $httpBackend.whenGET('/static/node_modules/invenio-records-js/dist/templates/default.html').respond(200, '');
+    $httpBackend.whenGET('/static/node_modules/invenio-records-js/dist/templates/default.html').respond(200, '');
     $httpBackend.whenGET('/test/template/alert.html').respond(200, '');
     $httpBackend.whenGET('/test/template/loading.html').respond(200, '');
     $httpBackend.whenGET('directives/decorators/bootstrap/fieldset.html').respond(200, '');
@@ -102,8 +102,8 @@ describe('Unit: testing directive invenio-records-form', function() {
               'schema="/static/json/records.json"> ' +
               '<invenio-records-form ' +
               'template="src/invenio-records-js/templates/form.html" ' +
-              'form-templates=\'{"default": "/static/node_modules/' +
-              'invenio-records-js/dist/templates/default.html"}\'>' +
+              'form-templates-base="/static/node_modules/invenio-records-js/dist/templates" ' +
+              'form-templates=\'{"default": "default.html"}\'>' +
               '</invenio-records-form>' +
               '<invenio-records-alert ' +
               'template="/test/template/alert.html">' +
@@ -117,7 +117,7 @@ describe('Unit: testing directive invenio-records-form', function() {
 
     // Digest
     $httpBackend.flush();
-    scope.$digest();
+    scope.$apply();
   }));
 
   it('should have the form element', function() {
@@ -125,20 +125,85 @@ describe('Unit: testing directive invenio-records-form', function() {
     expect(template.find('form').length).to.be.equal(1);
   });
 
-  it('should handle autocomplete', function() {
-    var data;
+  it('should have three ui select elements', function() {
+    // Should have ``form`` element
+    expect(template.find('.ui-select-search').length).to.be.equal(3);
+    // check that ui-select works
+    template.find('.ui-select-search').eq(0).val('Jessica Jones');
+    expect(template.find('.ui-select-search').eq(0).val()).to.be.equal('Jessica Jones');
+  });
 
-    scope.autocompleteSuggest('/autocomplete', 'a.b', 'c.d.name', 'e.f.value')().then(function(response) {
-      data = response;
+  it('should successfuly handle autocomplete', function() {
+    // Success autocomplete
+    var autocompleteSuccess = readJSON('test/fixtures/autocomplete.json');
+
+    // Autocomplete reply
+    $httpBackend.whenGET('/autocomplete?success=true&text=Jessica+Jones').respond(200, autocompleteSuccess);
+
+    scope.autocompleteSuggest(
+      {
+        url: '/autocomplete',
+        map: {
+          resultsProperty: 'text.0.options',
+        },
+        urlParameters: {
+          text: 'value',
+          success: 'true'
+        }
+      },
+      'Jessica Jones'
+    ).then(function(result) {
+      expect(result.data).to.deep.equal(autocompleteSuccess.text[0].options);
     });
-
+    // Flash the request
     $httpBackend.flush();
+  });
 
-    expect(data).to.deep.equal({
-      data: [
-        {name: 'hello', value: 'world'},
-        {name: 'hi', value: 'werld'},
-      ]
+  it('should error handle autocomplete', function() {
+    var autocompleteSuccess = readJSON('test/fixtures/autocomplete.json');
+    // Autocomplete reply
+
+    $httpBackend.whenGET('/autocomplete?plain=The+Punisher&scope=Harley+Quinn&text=Jessica+Jones').respond(500, {});
+    // Add a var to the scope
+    scope.query = 'Harley Quinn';
+
+    scope.autocompleteSuggest(
+      {
+        url: '/autocomplete',
+        map: {
+          resultsProperty: 'text.0.options',
+        },
+        urlParameters: {
+          text: 'value',
+          scope: 'query',
+          plain: 'The Punisher'
+        }
+      },
+      'Jessica Jones'
+    ).then(function(result) {
+      expect(result.data).to.deep.equal([]);
     });
+
+    // Flash the request
+    scope.$apply();
+
+    scope.autocompleteSuggest(
+      {
+        map: {
+          resultsProperty: 'text.0.options',
+        },
+        urlParameters: {
+          text: 'value',
+          scope: 'query',
+          plain: 'punisher'
+        }
+      },
+      'Jessica Jones'
+    ).then(function(result) {
+      expect(result.data).to.deep.equal([]);
+    });
+
+    // Flash the request
+    scope.$apply();
   });
 });

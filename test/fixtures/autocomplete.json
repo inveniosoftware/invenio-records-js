@@ -1,0 +1,48 @@
+{
+
+    "text": [
+        {
+            "length": 1,
+            "offset": 0,
+            "options": [
+                {
+                    "payload": {
+                        "id": "AFL-3.0"
+                    },
+                    "score": 1.0,
+                    "text": "Academic Free License 3.0"
+                },
+                {
+                    "payload": {
+                        "id": "APL-1.0"
+                    },
+                    "score": 1.0,
+                    "text": "Adaptive Public License 1.0"
+                },
+                {
+                    "payload": {
+                        "id": "Against-DRM"
+                    },
+                    "score": 1.0,
+                    "text": "Against DRM"
+                },
+                {
+                    "payload": {
+                        "id": "Apache-1.1"
+                    },
+                    "score": 1.0,
+                    "text": "Apache Software License 1.1"
+                },
+                {
+                    "payload": {
+                        "id": "Apache-2.0"
+                    },
+                    "score": 1.0,
+                    "text": "Apache Software License 2.0"
+                }
+            ],
+            "text": "a"
+        }
+    ]
+
+}

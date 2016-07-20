@@ -4,6 +4,41 @@
     "title": "Record type",
     "items": [
       {
+        "description": "The auto complete",
+        "type": "uiselect",
+        "options": {
+          "multiple": true,
+          "urlParameters": {
+            "text": "value"
+          },
+          "asyncCallback": "autocompleteSuggest",
+          "url": "/api/licenses/_suggest",
+          "map": {
+            "resultsProperty": "text.0.options",
+            "valueProperty": "payload.id",
+            "nameProperty": "text"
+          }
+        },
+        "key": "auto_elastic",
+        "placeholder": "Autocomplete Elastic"
+      },
+      {
+        "description": "The auto complete",
+        "type": "uiselect",
+        "options": {
+          "multiple": true,
+          "asyncCallback": "autocompleteSuggest",
+          "url": "/api/licenses/_suggest",
+          "map": {
+            "resultsProperty": "text.0.options",
+            "valueProperty": "payload.id",
+            "nameProperty": "text"
+          }
+        },
+        "key": "auto_normal",
+        "placeholder": "Autocomplete Normal"
+      },
+      {
         "type": "radios-inline",
         "notitle": true,
         "key": "resource_type.type",

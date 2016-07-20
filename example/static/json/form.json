@@ -1,3 +1,9 @@
 [
-  "*"
+  "name",
+  "email",
+  {
+    "key": "comment",
+    "type": "textarea",
+    "placeholder": "Make a comment"
+  }
 ]

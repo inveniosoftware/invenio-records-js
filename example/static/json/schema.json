@@ -1,51 +1,23 @@
 {
   "type": "object",
-  "title": "Record",
+  "title": "Comment",
   "properties": {
-    "title_statement": {
-      "type": "object",
-      "properties": {
-        "title": {
-          "title": "Title",
-          "type": "string"
-        }
-      }
+    "name":  {
+      "title": "Name",
+      "type": "string"
     },
-    "main_entry_personal_name": {
-      "title": "Main entry personal name",
-      "type": "array",
-      "items":{
-        "type": "object",
-        "properties": {
-          "personal_name": {
-            "title": "Personal Name",
-            "type": "string"
-          }
-        }
-      }
+    "email":  {
+      "title": "Email",
+      "type": "string",
+      "pattern": "^\\S+@\\S+$",
+      "description": "Email will be used for evil."
     },
-    "summary": {
-      "title": "Summary",
-      "type": "array",
-      "items":{
-        "type": "object",
-        "properties": {
-          "summary": {
-            "title": "Summary",
-            "type": "string"
-          }
-        }
-      }
-    },
-    "license": {
-      "type": "uiselect",
-      "options": {
-        "asyncCallback": "autocompleteSuggest('/licenses', 'hits', 'output', 'payload')"
-      }
+    "comment": {
+      "title": "Comment",
+      "type": "string",
+      "maxLength": 20,
+      "validationMessage": "Don't be greedy!"
     }
-
   },
-  "required": [
-    "main_entry_personal_name"
-  ]
+  "required": ["name", "email", "comment"]
 }

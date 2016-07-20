@@ -162,13 +162,6 @@
         function success() {
           var _data = angular.merge({}, vm.invenioRecordsModel);
 
-          // FIXME: Hot fix for zenodo
-          delete _data._deposit;
-          delete _data.access_right;
-          delete _data.resource_type;
-          _data.upload_type = 'dataset';
-          _data.license = 'CC-BY-4.0';
-
           var unwatend = [[null], [{}], '', [undefined]];
           angular.forEach(_data, function(value, key) {
             angular.forEach(unwatend, function(_value) {
@@ -288,7 +281,6 @@
         actionErrored
       );
     }
-
 
     /**
       * Remove validation error
@@ -698,11 +690,13 @@
    * @example
    *    Usage:
    *     <invenio-records-form
+   *      form-templates='{"textarea": "textarea.html"}'
+   *      form-templates-base="/src/node_modules"
    *      template="">
    *     </invenio-records-form>
-   *
    */
-  function invenioRecordsForm($http, schemaFormDecorators, invenioRecordsAPI) {
+  function invenioRecordsForm($q, schemaFormDecorators, invenioRecordsAPI,
+    $httpParamSerializerJQLike) {
 
     // Functions
 
@@ -715,14 +709,21 @@
      * @param {invenioRecordsController} vm - Invenio records controller.
      */
     function link(scope, element, attrs, vm) {
-      if (attrs.formTemplates) {
+
+      // Add custom templates
+      if (attrs.formTemplates && attrs.formTemplatesBase) {
         var formTemplates = JSON.parse(attrs.formTemplates);
-        for (var formElem in formTemplates) {
-          if (formTemplates.hasOwnProperty(formElem)) {
-            schemaFormDecorators.decorator()[formElem.replace('_', '-')]
-              .template = formTemplates[formElem];
-          }
+        var formTemplatesBase = attrs.formTemplatesBase;
+
+        if (formTemplatesBase.substr(formTemplatesBase.length -1) !== '/') {
+          formTemplatesBase = formTemplatesBase + '/';
         }
+
+        angular.forEach(formTemplates, function(value, key) {
+          schemaFormDecorators
+            .decorator()[key.replace('_', '-')]
+            .template = formTemplatesBase + value;
+        });
       }
 
       /**
@@ -738,21 +739,92 @@
         }, obj);
       };
 
-      scope.autocompleteSuggest = function(uri, options, name, value) {
-        return function() {
-          return invenioRecordsAPI.request({url: uri, method: 'GET'}).then(function (response) {
-            var data = getProp(response.data, options);
-            return {
-              data: data.map(function (option) {
+      /**
+       * Empty promise for the autocompletion
+       * @memberof invenioRecordsFrom
+       * @function _errorOrEmpty
+       */
+      function _errorOrEmppty(){
+        var defer = $q.defer();
+        defer.resolve({data: []});
+        return defer.promise;
+      }
+
+      /**
+       * Handle the autocomplete request
+       * @memberof invenioRecordsFrom
+       * @function _suggestEngine
+       * @param {Object} args - The arguments for the request.
+       * @param {Object} keyProperty - The results key.
+       */
+      function _suggestEngine(args, keyProperty) {
+        if (args.url !== undefined) {
+          return invenioRecordsAPI.request(args)
+            .then(
+              function success(response) {
                 return {
-                  name: getProp(option, name),
-                  value: getProp(option, value)
+                  data: getProp(response.data, keyProperty)
                 };
-              })
-            };
+              },
+              _errorOrEmppty
+            );
+        }
+        return _errorOrEmppty();
+      }
+
+      /**
+       * Add url parameters
+       * @memberof invenioRecordsFrom
+       * @function _urlParser
+       * @param {String} url - The url.
+       * @param {Object} urlParameters - The parameters for the url.
+       * @param {String} query - The query.
+       */
+      function _urlParser(url, urlParameters, query){
+        if (urlParameters !== undefined) {
+          var urlArgs = {};
+          angular.forEach(urlParameters, function(value, key) {
+            try {
+              if (key === 'text' && value === 'value'){
+                urlArgs[key] = query;
+              } else {
+                urlArgs[key] = scope.$eval(value) || value;
+              }
+            } catch(error) {
+              urlArgs[key] = value;
+            }
           });
-        };
-      };
+          url = url + '?' + $httpParamSerializerJQLike(
+            angular.merge({}, urlArgs)
+          );
+        }
+        return url;
+      }
+
+      /**
+       * Trigger it on autocomplete field
+       * @memberof invenioRecordsFrom
+       * @function autocompleteSuggest
+       * @param {Object} options - The options from the form schema.
+       * @param {String} query - The query.
+       */
+      function autocompleteSuggest(options, query) {
+        var args = {};
+        if (query && options.url !== undefined) {
+          // Parse the url parameters
+          args = angular.extend({},
+            {
+              url: _urlParser(options.url, options.urlParameters, query),
+              method: 'GET',
+              data: options.data || {},
+              headers: options.headers || vm.invenioRecordsArgs.headers
+            }
+          );
+        }
+        return _suggestEngine(args, options.map.resultsProperty);
+      }
+      // Attach to the scope
+      scope.autocompleteSuggest = autocompleteSuggest;
     }
 
     /**
@@ -783,8 +855,12 @@
     };
   }
 
-  invenioRecordsForm.$inject = ['$http', 'schemaFormDecorators', 'invenioRecordsAPI'];
-
+  invenioRecordsForm.$inject = [
+    '$q',
+    'schemaFormDecorators',
+    'invenioRecordsAPI',
+    '$httpParamSerializerJQLike'
+  ];
 
   ///////////////
 

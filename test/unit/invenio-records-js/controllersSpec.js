@@ -28,18 +28,21 @@ describe('Unit: testing controllers', function() {
   var $controller;
   var $rootScope;
   var ctrl;
+  var invenioRecordsAPI;
   var scope;
 
   // Inject the angular module
   beforeEach(angular.mock.module('invenioRecords'));
 
-  beforeEach(inject(function(_$controller_, _$rootScope_) {
+  beforeEach(inject(function(_$controller_, _$rootScope_, _invenioRecordsAPI_) {
     // Controller
     $controller = _$controller_;
     // The Scope
     $rootScope = _$rootScope_;
     // Set the scope
     scope = $rootScope;
+    // Set the service
+    invenioRecordsAPI = _invenioRecordsAPI_;
     // The controller
     ctrl = $controller('invenioRecordsController', {
       $scope: scope,
@@ -66,6 +69,11 @@ describe('Unit: testing controllers', function() {
       }
     };
     expect(ctrl.invenioRecordsArgs).to.deep.equal(args);
+  });
+
+  it('should return undefined on empty url', function() {
+    var api = invenioRecordsAPI.get(null);
+    expect(api.$$state.value).to.be.undefined;
   });
 
   it('should trigger the events', function() {

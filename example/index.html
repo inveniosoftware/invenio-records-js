@@ -46,11 +46,12 @@
           <div class="alert alert-info" role="alert">
             <strong>Head up!</strong> Remember to change the attributes.
           </div>
+          <pre>You can specify your own personal field templates by using the ``form-templates`` attribute.</pre>
           <div ng-app="invenioRecordsDemo">
             <invenio-records
               extra-params="{}"
               record='{}'
-              initialization="http://locahost:5000/"
+              initialization="http://locahost:5000/deposition"
               form="/example/static/json/form.json"
               schema="/example/static/json/schema.json"
             >
@@ -61,6 +62,8 @@
                 template="/src/invenio-records-js/templates/actions.html">
               </invenio-records-actions>
               <invenio-records-form
+                form-templates-base='/src/invenio-records-js/templates/decorators/'
+                form-templates='{"default": "default.html", "textarea": "textarea.html"}'
                 template="/src/invenio-records-js/templates/form.html">
               </invenio-records-form>
             </invenio-records>

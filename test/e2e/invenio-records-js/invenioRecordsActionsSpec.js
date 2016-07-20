@@ -110,6 +110,9 @@ describe('Unit: testing directive invenio-records-actions', function() {
   });
 
   it('should trigger action event for save', function() {
+     // Spy the broadcast
+    var spy = sinon.spy($rootScope, '$broadcast');
+
     // Complile&Digest here to catch the event
     // The directive's template
     template = '<invenio-records ' +
@@ -125,9 +128,6 @@ describe('Unit: testing directive invenio-records-actions', function() {
 
     // Digest
     scope.$digest();
-
-     // Spy the broadcast
-    var spy = sinon.spy($rootScope, '$broadcast');
 
     // Flash responses to trigger the events
     $httpBackend.flush();
@@ -257,6 +257,9 @@ describe('Unit: testing directive invenio-records-actions', function() {
   });
 
   it('should trigger action event for delete', function() {
+     // Spy the broadcast
+    var spy = sinon.spy($rootScope, '$broadcast');
+
     // Complile&Digest here to catch the event
     // The directive's template
     template = '<invenio-records ' +
@@ -273,8 +276,6 @@ describe('Unit: testing directive invenio-records-actions', function() {
     // Digest
     scope.$digest();
 
-     // Spy the broadcast
-    var spy = sinon.spy($rootScope, '$broadcast');
 
     // Flash responses to trigger the events
     $httpBackend.flush();
@@ -354,6 +355,9 @@ describe('Unit: testing directive invenio-records-actions', function() {
   });
 
   it('should trigger action with create', function() {
+    // Spy the broadcast
+    var spy = sinon.spy($rootScope, '$broadcast');
+
     // Complile&Digest here to catch the event
     // The directive's template
     template = '<invenio-records ' +
@@ -369,8 +373,6 @@ describe('Unit: testing directive invenio-records-actions', function() {
     // Digest
     scope.$digest();
 
-     // Spy the broadcast
-    var spy = sinon.spy($rootScope, '$broadcast');
 
     // Flash responses to trigger the events
     $httpBackend.flush();

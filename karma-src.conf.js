@@ -70,6 +70,7 @@ module.exports = function(config) {
       'src/**/*.js',
       'src/**/*.html',
       'test/unit/**/*.js',
+      'test/e2e/**/*.js',
       {pattern: 'test/fixtures/**/*.json', included: false},
     ],
 
