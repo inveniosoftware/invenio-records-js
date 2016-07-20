@@ -1,8 +1,8 @@
 ===========================
- Invenio-Records-JS v0.0.1
+ Invenio-Records-JS v0.0.2
 ===========================
 
-Invenio-Records-JS v0.0.1 was released on April 21, 2016.
+Invenio-Records-JS v0.0.2 was released on July 20, 2016.
 
 About
 -----
@@ -14,7 +14,7 @@ Invenio-Records client library for building the web UI.
 What's new
 ----------
 
-- Initial public release.
+- Invenio-Deposit integration
 
 Installation
 ------------
