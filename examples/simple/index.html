@@ -52,12 +52,12 @@
               extra-params="{}"
               record='{}'
               initialization="http://locahost:5000/deposition"
-              form="/example/static/json/form.json"
-              schema="/example/static/json/schema.json"
+              form="./static/json/form.json"
+              schema="./static/json/schema.json"
             >
-              <invenio-records-error
-                template="/src/invenio-records-js/templates/error.html">
-              </invenio-records-error>
+              <invenio-records-alert
+                template="/src/invenio-records-js/templates/alert.html">
+              </invenio-records-alert>
               <invenio-records-actions
                 template="/src/invenio-records-js/templates/actions.html">
               </invenio-records-actions>

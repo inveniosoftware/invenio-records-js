@@ -15,7 +15,7 @@ Installation
 Demo
 ----
 
-    $ cd example; npm install; cd ..
+    $ cd examples/simple; npm install; cd ../..
     $ npm run-script demo
 
 Navigate to `http://localhost:8000` to see the `demo`.
@@ -36,4 +36,4 @@ Docs
 How to use?
 -----------
 
-Check out the `example/` to see how to configure your app.
+Check out the `examples/` to see how to configure your app.

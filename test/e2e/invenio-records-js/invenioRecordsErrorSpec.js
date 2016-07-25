@@ -63,9 +63,9 @@ describe('Unit: testing directive invenio-records-error', function() {
               'initialization="http://locahost:5000/" ' +
               'form="/example/static/json/form.json" ' +
               'schema="/example/static/json/schema.json">' +
-              '<invenio-records-error ' +
-              'template="src/invenio-records-js/templates/error.html"> '+
-              '</invenio-records-error>'+
+              '<invenio-records-alert ' +
+              'template="src/invenio-records-js/templates/alert.html"> '+
+              '</invenio-records-alert>'+
             '</invenio-records>';
     // Compile
     template = $compile(template)(scope);
@@ -84,5 +84,9 @@ describe('Unit: testing directive invenio-records-error', function() {
     scope.$broadcast('invenio.records.alert', message);
     expect(scope.recordsVM.invenioRecordsAlert.data)
       .to.deep.equal(message.data);
+
+    scope.$digest();
+
+    expect(template.find('.alert').text()).to.contain(message.data.message);
   });
 });
