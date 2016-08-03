@@ -222,7 +222,7 @@ describe('Unit: testing directive invenio-records-actions', function() {
     scope.$digest();
 
     // Expect error
-    var error = 'The action type is not supported';
+    var error = 'The action type is not supported.';
 
     // Expect the message to be
     expect(scope.recordsVM.invenioRecordsAlert.data.message).to.be.equal(error);

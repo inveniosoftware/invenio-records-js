@@ -67,6 +67,7 @@ module.exports = function(config) {
       'node_modules/angular-schema-form/dist/schema-form.js',
       'node_modules/angular-schema-form/dist/bootstrap-decorator.js',
       'node_modules/angular-schema-form-dynamic-select/angular-schema-form-dynamic-select.js',
+      'src/*/*.js',
       'src/**/*.js',
       'src/**/*.html',
       'test/unit/**/*.js',
@@ -89,8 +90,12 @@ module.exports = function(config) {
 
     // Coverage reporter
     coverageReporter: {
-      type: 'lcov',
-      dir: 'coverage/'
+      dir: 'coverage/',
+      reporters: [
+        {type: 'text'},
+        {type: 'html', subdir: 'report-html'},
+        {type: 'lcov', subdir: 'report-lcov'}
+      ]
     },
 
 

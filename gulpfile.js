@@ -41,8 +41,8 @@ var sourceDirectory = path.join(rootDirectory, './src');
 
 var sourceFiles = [
 
-  // Make sure module files are handled first
-  path.join(sourceDirectory, '/**/*.module.js'),
+  // Then add all JavaScript files
+  path.join(sourceDirectory, '/*.js'),
 
   // Then add all JavaScript files
   path.join(sourceDirectory, '/**/*.js'),
@@ -69,7 +69,7 @@ var lintFiles = [
  */
 
 // run all the build tasks
-gulp.task('build', ['clean.build'], function (done) {
+gulp.task('build', ['clean.build'], function(done) {
   runSequence(
     'build.src', 'build.templates', done
   );
@@ -80,6 +80,8 @@ gulp.task('build.src', function() {
   gulp.src(sourceFiles)
     .pipe(plugins.plumber())
     .pipe(plugins.concat('invenio-records-js.js'))
+    .pipe(plugins.stripComments())
+    .pipe(plugins.header(licences.javascript))
     .pipe(gulp.dest('./dist/'))
     .pipe(plugins.uglify())
     .pipe(plugins.rename('invenio-records-js.min.js'))
@@ -99,12 +101,12 @@ gulp.task('build.templates', function() {
  */
 
 // Run test once and exit
-gulp.task('test', function (done) {
+gulp.task('test', function(done) {
   runSequence('test.jshint', 'test.src', done);
 });
 
 // check jshint
-gulp.task('test.jshint', function () {
+gulp.task('test.jshint', function() {
   return gulp.src(lintFiles)
     .pipe(plugins.plumber())
     .pipe(plugins.jshint())
@@ -113,7 +115,7 @@ gulp.task('test.jshint', function () {
 });
 
 // test sources
-gulp.task('test.src', function (done) {
+gulp.task('test.src', function(done) {
   karma.start({
     configFile: __dirname + '/karma-src.conf.js',
     singleRun: true
@@ -121,7 +123,7 @@ gulp.task('test.src', function (done) {
 });
 
 // coveralls
-gulp.task('coveralls', function () {
+gulp.task('coveralls', function() {
   return gulp.src('coverage/**/lcov.info')
     .pipe(plugins.coveralls());
 });
@@ -131,12 +133,18 @@ gulp.task('coveralls', function () {
  * Demo
  */
 
-gulp.task('demo', function() {
+// run the demo
+gulp.task('demo.run', function() {
   gulp.src(rootDirectory)
     .pipe(plugins.webserver({
       livereload: true,
       open: '/examples/index.html'
   }));
+});
+
+// run build and then the demo
+gulp.task('demo', function(done) {
+  runSequence('build', 'demo.run', done);
 });
 
 /**
@@ -152,7 +160,7 @@ gulp.task('clean.build', function() {
  * Watch
  */
 
-gulp.task('watch', function () {
+gulp.task('watch', function() {
   // Watch JavaScript files
   gulp.watch(sourceFiles, ['test']);
 });
@@ -161,6 +169,6 @@ gulp.task('watch', function () {
  * Default taks
  */
 
-gulp.task('default', function () {
+gulp.task('default', function() {
   runSequence('test', 'watch');
 });

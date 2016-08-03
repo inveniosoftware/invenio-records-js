@@ -21,8 +21,14 @@
  * as an Intergovernmental Organization or submit itself to any jurisdiction.
  */
 
-(function (angular) {
-  angular.module('invenioRecordsDemo', [
-    'invenioRecords'
-  ]);
-})(angular);
+angular.module('invenioRecords.controllers', []);
+angular.module('invenioRecords.directives', []);
+angular.module('invenioRecords.services', []);
+
+// Setup everyhting
+angular.module('invenioRecords', [
+  'schemaForm',
+  'invenioRecords.services',
+  'invenioRecords.controllers',
+  'invenioRecords.directives',
+]);
