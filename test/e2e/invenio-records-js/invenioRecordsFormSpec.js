@@ -23,7 +23,7 @@
 
 'use strict';
 
-describe('Unit: testing directive invenio-records-form', function() {
+describe('testing directive invenio-records-form', function() {
 
   var $compile;
   var $httpBackend;

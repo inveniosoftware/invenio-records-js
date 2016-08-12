@@ -21,6 +21,7 @@
  * as an Intergovernmental Organization or submit itself to any jurisdiction.
  */
 
+angular.module('invenioRecords.config', []);
 angular.module('invenioRecords.controllers', []);
 angular.module('invenioRecords.directives', []);
 angular.module('invenioRecords.services', []);
@@ -28,6 +29,7 @@ angular.module('invenioRecords.services', []);
 // Setup everyhting
 angular.module('invenioRecords', [
   'schemaForm',
+  'invenioRecords.config',
   'invenioRecords.services',
   'invenioRecords.controllers',
   'invenioRecords.directives',

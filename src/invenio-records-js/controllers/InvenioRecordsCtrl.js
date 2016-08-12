@@ -28,8 +28,8 @@
   * @description
   *    Invenio records controller.
   */
-function InvenioRecordsCtrl($scope, $rootScope, $q, $timeout,
-    InvenioRecordsAPI) {
+function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
+  InvenioRecordsAPI) {
 
   // Parameters
 
@@ -141,6 +141,9 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $timeout,
           $rootScope.$broadcast(
             'invenio.records.endpoints.updated', response.data.links
           );
+          // Update the location
+          $rootScope.$broadcast(
+            'invenio.records.location.updated', response.data.links);
           deferred.resolve({});
         }, function error(response) {
           // Error
@@ -172,19 +175,17 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $timeout,
           if (type === 'publish') {
             method = 'POST';
           }
-          $timeout(function() {
-            InvenioRecordsAPI.request({
-              url: vm.invenioRecordsEndpoints[type],
-              method: method,
-              data: {
-                metadata: _data
-              },
-              headers: vm.invenioRecordsArgs.headers || {}
-            }).then(
-              successCallback,
-              errorCallback
-            );
-          }, 2000);
+          InvenioRecordsAPI.request({
+            url: vm.invenioRecordsEndpoints[type],
+            method: method,
+            data: {
+              metadata: _data
+            },
+            headers: vm.invenioRecordsArgs.headers || {}
+          }).then(
+            successCallback,
+            errorCallback
+          );
         } else {
           errorCallback({
             type: 'danger',
@@ -369,6 +370,25 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $timeout,
     );
   }
 
+  /**
+    * Updating the location with the new ``pid``
+    * @memberof InvenioRecordsCtrl
+    * @function invenioRecordsLocationUpdated
+    * @param {Object} evt - The event object.
+    * @param {Object} endpoints - The object with the endpoints.
+    */
+  function invenioRecordsLocationUpdated(evt, endpoints) {
+    // Change the location only if html exists
+    if (endpoints.html !== undefined) {
+      // ¯\_(ツ)_/¯ https://github.com/angular/angular.js/issues/3924
+      var parser = document.createElement('a');
+      parser.href = endpoints.html;
+      $location.url(parser.pathname);
+      $location.replace();
+    }
+  }
+
+
   // Attach fuctions to the scope
 
   // Action handler
@@ -407,6 +427,11 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $timeout,
   $rootScope.$on(
     'invenio.records.endpoints.updated', invenioRecordsEndpointsUpdated
   );
+
+  // Update location
+  $rootScope.$on(
+    'invenio.records.location.updated', invenioRecordsLocationUpdated
+  );
 }
 
 // Inject depedencies
@@ -414,7 +439,7 @@ InvenioRecordsCtrl.$inject = [
   '$scope',
   '$rootScope',
   '$q',
-  '$timeout',
+  '$location',
   'InvenioRecordsAPI',
 ];
 

@@ -23,13 +23,12 @@
 
 'use strict';
 
-describe('Unit: testing directive invenio-records-actions', function() {
+describe('testing directive invenio-records-actions', function() {
 
   var $compile;
   var $controller;
   var $httpBackend;
   var $rootScope;
-  var $timeout;
   var ctrl;
   var scope;
   var template;
@@ -40,7 +39,7 @@ describe('Unit: testing directive invenio-records-actions', function() {
     'pascalprecht.translate', 'ui.select', 'mgcrea.ngStrap.select'));
 
   beforeEach(inject(function(
-      _$controller_, _$compile_, _$rootScope_, _$timeout_, _$httpBackend_
+      _$controller_, _$compile_, _$rootScope_, _$httpBackend_
     ) {
     // Template compiler
     $compile = _$compile_;
@@ -50,8 +49,6 @@ describe('Unit: testing directive invenio-records-actions', function() {
     $rootScope = _$rootScope_;
     // The http backend
     $httpBackend = _$httpBackend_;
-    // The timeout service
-    $timeout = _$timeout_;
 
    // Expected requests responses
     // Record Schema
@@ -141,9 +138,6 @@ describe('Unit: testing directive invenio-records-actions', function() {
     // Should trigger an event
     spy.should.have.been.called.twice;
 
-    // Flash responses to trigger the events
-    $httpBackend.flush();
-
     // Expect no errors
     expect(scope.recordsVM.invenioRecordsAlert).to.be.equal(null);
 
@@ -183,10 +177,6 @@ describe('Unit: testing directive invenio-records-actions', function() {
 
     // Flash responses to trigger the events
     $httpBackend.flush();
-    // Flash timeout for index
-    $timeout.flush();
-    // Flash responses to trigger the events
-    $httpBackend.flush();
 
     //Should trigger init
     expect(spy.calledWith('invenio.records.init')).to.be.true;
@@ -202,16 +192,9 @@ describe('Unit: testing directive invenio-records-actions', function() {
 
     // Flash responses to trigger the events
     $httpBackend.flush();
-    // Flash timeout for index
-    $timeout.flush();
-    // Flash responses to trigger the events
-    $httpBackend.flush();
 
     // Trigger an event
     template.find('.btn').eq(0).triggerHandler('click');
-
-    // Flash timeout for index
-    $timeout.flush();
 
     // Flash responses to trigger the events
     $httpBackend.flush();
@@ -276,7 +259,6 @@ describe('Unit: testing directive invenio-records-actions', function() {
     // Digest
     scope.$digest();
 
-
     // Flash responses to trigger the events
     $httpBackend.flush();
 
@@ -286,9 +268,6 @@ describe('Unit: testing directive invenio-records-actions', function() {
     // Should trigger an event
     spy.should.have.been.called.twice;
 
-    // Flash responses to trigger the events
-    $httpBackend.flush();
-    $timeout.flush();
     // Expect no errors
     expect(scope.recordsVM.invenioRecordsAlert).to.be.equal(null);
   });

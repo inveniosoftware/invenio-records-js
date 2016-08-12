@@ -27,6 +27,7 @@ describe('Unit: testing controllers', function() {
 
   var $controller;
   var $rootScope;
+  var $location;
   var ctrl;
   var InvenioRecordsAPI;
   var scope;
@@ -34,11 +35,14 @@ describe('Unit: testing controllers', function() {
   // Inject the angular module
   beforeEach(angular.mock.module('invenioRecords'));
 
-  beforeEach(inject(function(_$controller_, _$rootScope_, _InvenioRecordsAPI_) {
+  beforeEach(inject(function(_$controller_, _$rootScope_,
+      _$location_, _InvenioRecordsAPI_) {
     // Controller
     $controller = _$controller_;
     // The Scope
     $rootScope = _$rootScope_;
+    // The location
+    $location = _$location_;
     // Set the scope
     scope = $rootScope;
     // Set the service
@@ -123,5 +127,31 @@ describe('Unit: testing controllers', function() {
     // The delete is been added afterwards as an action and has the
     // some url as ``.self``
     expect(ctrl.invenioRecordsEndpoints.delete).to.not.be.undefined;
+  });
+
+  it('should update the location on event', function() {
+    // Spy the broadcast
+    var spy = sinon.spy($rootScope, '$broadcast');
+    // Triger the event
+    scope.$broadcast('invenio.records.location.updated', {
+      html: '/deposit/harley_quinn'
+    });
+    // Check if the event has been triggered
+    expect(spy.calledWith('invenio.records.location.updated')).to.be.true;
+    // Location should be
+    expect($location.url()).to.be.equal('/deposit/harley_quinn');
+  });
+
+  it('should not update the location on event', function() {
+    // Spy the broadcast
+    var spy = sinon.spy($rootScope, '$broadcast');
+    // Triger the event
+    scope.$broadcast('invenio.records.location.updated', {
+      self: '/deposit/harley_quinn'
+    });
+    // Check if the event has been triggered
+    expect(spy.calledWith('invenio.records.location.updated')).to.be.true;
+    // Location should be
+    expect($location.url()).to.be.equal('/');
   });
 });
