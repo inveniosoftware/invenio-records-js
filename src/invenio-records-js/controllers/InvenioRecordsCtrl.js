@@ -132,7 +132,7 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
       if(vm.invenioRecordsEndpoints.self === undefined || type === 'publish') {
         // If the action url doesnt exists request it
         InvenioRecordsAPI.request({
-          method: vm.invenioRecordsModel.recid ? 'GET' : 'POST',
+          method: (vm.invenioRecordsModel.id !== undefined) ? 'GET' : 'POST',
           url: vm.invenioRecordsEndpoints.initialization,
           data: {},
           headers: vm.invenioRecordsArgs.headers || {}
