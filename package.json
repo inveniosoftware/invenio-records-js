@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "UPDATE_WITH_REPOSITORY_URL"
+    "url": "https://github.com/inveniosoftware/invenio-records-js"
   },
   "dependencies": {
     "angular": "=1.4.8",

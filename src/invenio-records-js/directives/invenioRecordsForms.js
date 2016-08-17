@@ -84,7 +84,7 @@ function invenioRecordsForm($q, schemaFormDecorators, InvenioRecordsAPI,
       * @memberof invenioRecordsFrom
       * @function _errorOrEmpty
       */
-    function _errorOrEmppty(){
+    function _errorOrEmpty(){
       var defer = $q.defer();
       defer.resolve({data: []});
       return defer.promise;
@@ -95,21 +95,28 @@ function invenioRecordsForm($q, schemaFormDecorators, InvenioRecordsAPI,
       * @memberof invenioRecordsFrom
       * @function _suggestEngine
       * @param {Object} args - The arguments for the request.
-      * @param {Object} keyProperty - The results key.
+      * @param {Object} map - Results property map.
       */
-    function _suggestEngine(args, keyProperty) {
+    function _suggestEngine(args, map) {
       if (args.url !== undefined) {
         return InvenioRecordsAPI.request(args)
           .then(
             function success(response) {
+              var data = getProp(response.data, map.resultSource);
+              angular.forEach(data, function(value, key) {
+                var item = {};
+                item[map.valueProperty] = getProp(value, map.valueSource || map.valueProperty);
+                item[map.nameProperty] = getProp(value, map.nameSource || map.nameProperty);
+                data[key] = item;
+              });
               return {
-                data: getProp(response.data, keyProperty)
+                data: data
               };
             },
-            _errorOrEmppty
+            _errorOrEmpty
           );
       }
-      return _errorOrEmppty();
+      return _errorOrEmpty();
     }
 
     /**
@@ -125,7 +132,7 @@ function invenioRecordsForm($q, schemaFormDecorators, InvenioRecordsAPI,
         var urlArgs = {};
         angular.forEach(urlParameters, function(value, key) {
           try {
-            if (key === 'text' && value === 'value'){
+            if (value === 'value'){
               urlArgs[key] = query;
             } else {
               urlArgs[key] = scope.$eval(value) || value;
@@ -150,6 +157,15 @@ function invenioRecordsForm($q, schemaFormDecorators, InvenioRecordsAPI,
       */
     function autocompleteSuggest(options, query) {
       var args = {};
+      // If the query string is empty and there's already a value set on the
+      // model, this means that the form was just loaded and is trying to
+      // display this value.
+      // NOTE: This is a good place to handle special values/configurations of
+      // autocomplete fields.
+      if (query === '' && options.scope && options.scope.insideModel &&
+          typeof options.scope.insideModel === 'string') {
+        query = options.scope.insideModel;
+      }
       if (query && options.url !== undefined) {
         // Parse the url parameters
         args = angular.extend({},
@@ -161,7 +177,7 @@ function invenioRecordsForm($q, schemaFormDecorators, InvenioRecordsAPI,
           }
         );
       }
-      return _suggestEngine(args, options.map.resultsProperty);
+      return _suggestEngine(args, options.map);
     }
     // Attach to the scope
     scope.autocompleteSuggest = autocompleteSuggest;

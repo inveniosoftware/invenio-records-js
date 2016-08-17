@@ -138,22 +138,30 @@ describe('Unit: testing directive invenio-records-form', function() {
     var autocompleteSuccess = readJSON('test/fixtures/autocomplete.json');
 
     // Autocomplete reply
-    $httpBackend.whenGET('/autocomplete?success=true&text=Jessica+Jones').respond(200, autocompleteSuccess);
+    $httpBackend.whenGET('/autocomplete?q=Jessica+Jones&success=true').respond(200, autocompleteSuccess);
 
     scope.autocompleteSuggest(
       {
         url: '/autocomplete',
         map: {
-          resultsProperty: 'text.0.options',
+          resultSource: 'text.0.options',
+          valueSource: 'payload.id',
+          nameSource: 'text',
+          valueProperty: 'value',
+          nameProperty: 'name',
         },
         urlParameters: {
-          text: 'value',
+          q: 'value',
           success: 'true'
         }
       },
       'Jessica Jones'
     ).then(function(result) {
-      expect(result.data).to.deep.equal(autocompleteSuccess.text[0].options);
+      var options = autocompleteSuccess.text[0].options;
+      expect(result.data[0].value).to.deep.equal(options[0].payload.id);
+      expect(result.data[0].name).to.deep.equal(options[0].text);
+      expect(result.data[4].value).to.deep.equal(options[4].payload.id);
+      expect(result.data[4].name).to.deep.equal(options[4].text);
     });
     // Flash the request
     $httpBackend.flush();
@@ -171,7 +179,11 @@ describe('Unit: testing directive invenio-records-form', function() {
       {
         url: '/autocomplete',
         map: {
-          resultsProperty: 'text.0.options',
+          resultSource: 'text.0.options',
+          valueSource: 'payload.id',
+          nameSource: 'text',
+          valueProperty: 'value',
+          nameProperty: 'name',
         },
         urlParameters: {
           text: 'value',
