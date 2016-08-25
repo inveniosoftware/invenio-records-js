@@ -120,13 +120,11 @@ describe('Unit: testing controllers', function() {
     scope.$broadcast('invenio.records.endpoints.updated', response);
 
     // Expect the endpoints to be updated
-    expect(ctrl.invenioRecordsEndpoints.self).to.not.be.undefined;
-    expect(ctrl.invenioRecordsEndpoints.publish).to.not.be.undefined;
-    expect(ctrl.invenioRecordsEndpoints.files).to.not.be.undefined;
     expect(ctrl.invenioRecordsEndpoints.discard).to.not.be.undefined;
-    // The delete is been added afterwards as an action and has the
-    // some url as ``.self``
-    expect(ctrl.invenioRecordsEndpoints.delete).to.not.be.undefined;
+    expect(ctrl.invenioRecordsEndpoints.edit).to.not.be.undefined;
+    expect(ctrl.invenioRecordsEndpoints.files).to.not.be.undefined;
+    expect(ctrl.invenioRecordsEndpoints.publish).to.not.be.undefined;
+    expect(ctrl.invenioRecordsEndpoints.self).to.not.be.undefined;
   });
 
   it('should update the location on event', function() {

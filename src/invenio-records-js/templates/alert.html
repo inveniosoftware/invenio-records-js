@@ -1,5 +1,5 @@
 <div ng-show="recordsVM.invenioRecordsAlert" class="alert alert-{{recordsVM.invenioRecordsAlert.type}}">
   <strong>{{ recordsVM.invenioRecordsAlert.data.status }}</strong>
-    {{ recordsVM.invenioRecordsAlert.data.message || recordsVM.invenioRecordsArgs.responseParams[recordsVM.invenioRecordsAlert.action].message }}
+    {{ recordsVM.invenioRecordsAlert.data.message || recordsVM.invenioRecordsArgs.templateParams.responseParams[recordsVM.invenioRecordsAlert.action].message }}
     <a class="pull-right" href="/deposit" ng-show="recordsVM.invenioRecordsAlert.type == 'success' && recordsVM.invenioRecordsArgs.responseParams[recordsVM.invenioRecordsAlert.action].backlink">Go back</a>
 </div>

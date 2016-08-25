@@ -86,8 +86,9 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
     * @param {Object} args - The invenio records arguments.
     * @param {Object} endpoints - The invenio endpoints for actions.
     * @param {Object} record - The record object.
+    * @param {Object} links - The record action links.
     */
-  function invenioRecordsInit(evt, args, endpoints, record) {
+  function invenioRecordsInit(evt, args, endpoints, record, links) {
     // Start loading
     $rootScope.$broadcast('invenio.records.loading.start');
     // Assign the model
@@ -104,6 +105,12 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
       endpoints
     );
 
+    if (Object.keys(links).length > 0) {
+      $rootScope.$broadcast(
+        'invenio.records.endpoints.updated', links
+      );
+    }
+
     // Get the schema and the form
     $q.all([
       InvenioRecordsAPI.get(vm.invenioRecordsEndpoints.schema)
@@ -117,44 +124,47 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
   }
 
   /**
+    * Request an upload
+    * @memberof InvenioFilesCtrl
+    * @function upload
+    */
+  function getEndpoints(){
+    var deferred = $q.defer();
+    if(vm.invenioRecordsEndpoints.self === undefined) {
+      // If the action url doesnt exists request it
+      InvenioRecordsAPI.request({
+        method: 'POST',
+        url: vm.invenioRecordsEndpoints.initialization,
+        data: {},
+        headers: vm.invenioRecordsArgs.headers || {}
+      }).then(function success(response) {
+        // Upadate the endpoints
+        $rootScope.$broadcast(
+          'invenio.records.endpoints.updated', response.data.links
+        );
+        deferred.resolve({});
+      }, function error(response) {
+        // Error
+        deferred.reject(response);
+      });
+    } else {
+      // We already have it resolve it asap
+      deferred.resolve({});
+    }
+    return deferred.promise;
+  }
+
+  /**
     * Records actions
     * @memberof InvenioRecordsCtrl
     * @function invenioRecordsActions
     * @param {Object} evt - The event object.
     * @param {String} type - The invenio action type.
+    * @param {String} method - The invenio request method.
     * @param {Object} successCallback - Call function after success.
     * @param {Object} errorCallback - Call function after error..
     */
-  function invenioRecordsActions(evt, type, successCallback, errorCallback) {
-
-    function getEndpoints(){
-      var deferred = $q.defer();
-      if(vm.invenioRecordsEndpoints.self === undefined || type === 'publish') {
-        // If the action url doesnt exists request it
-        InvenioRecordsAPI.request({
-          method: (vm.invenioRecordsModel.id !== undefined) ? 'GET' : 'POST',
-          url: vm.invenioRecordsEndpoints.initialization,
-          data: {},
-          headers: vm.invenioRecordsArgs.headers || {}
-        }).then(function success(response) {
-          // Upadate the endpoints
-          $rootScope.$broadcast(
-            'invenio.records.endpoints.updated', response.data.links
-          );
-          // Update the location
-          $rootScope.$broadcast(
-            'invenio.records.location.updated', response.data.links);
-          deferred.resolve({});
-        }, function error(response) {
-          // Error
-          deferred.reject(response);
-        });
-      } else {
-        // We already have it resolve it asap
-        deferred.resolve({});
-      }
-      return deferred.promise;
-    }
+  function invenioRecordsActions(evt, type, method, successCallback, errorCallback) {
 
     // Get the endpoints and do the request
     getEndpoints().then(
@@ -171,13 +181,9 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
         });
 
         if (vm.invenioRecordsEndpoints[type] !== undefined) {
-          var method = (type === 'delete') ? 'DELETE': 'PUT';
-          if (type === 'publish') {
-            method = 'POST';
-          }
           InvenioRecordsAPI.request({
             url: vm.invenioRecordsEndpoints[type],
-            method: method,
+            method: (method || 'PUT').toUpperCase(),
             data: {
               metadata: _data
             },
@@ -202,8 +208,10 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
     * Action handler
     * @memberof InvenioRecordsCtrl
     * @function invenioRecordsHandler
+    * @param {string} type - The action key from ``links`` object.
+    * @param {string} method - The request method type i.e. GET, POST, PUT.
     */
-  function invenioRecordsHandler(type) {
+  function invenioRecordsHandler(type, method) {
 
     /**
       * After a successful request
@@ -215,7 +223,7 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
       $rootScope.$broadcast('invenio.records.alert', {
         type: 'success',
         data: response.data,
-        action: type
+        action: type,
       });
 
       // Trigger successful event for action
@@ -274,6 +282,7 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
     $scope.$broadcast(
       'invenio.records.action',
       type,
+      method,
       actionSuccessful,
       actionErrored
     );
@@ -362,11 +371,13 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
     */
   function invenioRecordsEndpointsUpdated(evt, endpoints) {
     vm.invenioRecordsEndpoints = angular.merge(
-      {
-        'delete': endpoints.self,
-      },
+      {},
       vm.invenioRecordsEndpoints,
       endpoints
+    );
+    // Update the location
+    $rootScope.$broadcast(
+      'invenio.records.location.updated', endpoints
     );
   }
 

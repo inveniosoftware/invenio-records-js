@@ -33,6 +33,7 @@
   *      action="http://"
   *      extra-params='{}'
   *      form="http://"
+  *      links="{}"
   *      initialization="http://"
   *      record='record'
   *      schema="http://">
@@ -54,39 +55,35 @@ function invenioRecords() {
   function link(scope, element, attrs, vm) {
 
     // Upadate parameters
-    var collectedArgs = {
-      method: attrs.actionMethod || 'GET'
-    };
-
-    // Get alert messages
-    var responseParams = {
-      responseParams: JSON.parse(attrs.responseParams || '{}')
+    // Get extra template parameters
+    var templateParams = {
+      templateParams: JSON.parse(attrs.templateParams || '{}')
     };
 
     // Get any extras
     var extraParams = JSON.parse(attrs.extraParams || '{}');
 
+    // Get any extras
+    var links = JSON.parse(attrs.links || '{}');
+
     // Merge together
     var args = angular.merge(
       {},
-      collectedArgs,
-      responseParams,
+      templateParams,
       extraParams
     );
-
     // Get the endpoints for schemas
     var endpoints = {
-      form: attrs.form || null,
-      initialization: attrs.initialization || null,
-      schema: attrs.schema || null
+      form: attrs.form,
+      initialization: attrs.initialization,
+      schema: attrs.schema,
     };
-
     // Get the record object
     var record = JSON.parse(attrs.record || '{}');
 
     // Spread the love of initialization
     scope.$broadcast(
-      'invenio.records.init', args, endpoints, record
+      'invenio.records.init', args, endpoints, record, links
     );
   }
 
