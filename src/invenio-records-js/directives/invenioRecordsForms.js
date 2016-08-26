@@ -160,11 +160,16 @@ function invenioRecordsForm($q, schemaFormDecorators, InvenioRecordsAPI,
       // If the query string is empty and there's already a value set on the
       // model, this means that the form was just loaded and is trying to
       // display this value.
+      // This also happens when the user clicks on a suggestion or on the
+      // suggestion field. In this case, return the previous suggestions.
       // NOTE: This is a good place to handle special values/configurations of
       // autocomplete fields.
-      if (query === '' && options.scope && options.scope.insideModel &&
-          typeof options.scope.insideModel === 'string') {
-        query = options.scope.insideModel;
+      if (query === '') {
+        if (scope.lastSuggestions) {
+          return scope.lastSuggestions;
+        } else if (options.scope && typeof options.scope.insideModel === 'string') {
+          query = options.scope.insideModel;
+        }
       }
       if (query && options.url !== undefined) {
         // Parse the url parameters
@@ -177,7 +182,10 @@ function invenioRecordsForm($q, schemaFormDecorators, InvenioRecordsAPI,
           }
         );
       }
-      return _suggestEngine(args, options.map);
+      return _suggestEngine(args, options.map).then(function(response) {
+        scope.lastSuggestions = response;
+        return response;
+      });
     }
     // Attach to the scope
     scope.autocompleteSuggest = autocompleteSuggest;
