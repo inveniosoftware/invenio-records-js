@@ -28,7 +28,7 @@
   * @description
   *    Invenio records controller.
   */
-function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
+function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
   InvenioRecordsAPI) {
 
   // Parameters
@@ -130,7 +130,7 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
     */
   function getEndpoints(){
     var deferred = $q.defer();
-    if(vm.invenioRecordsEndpoints.self === undefined) {
+    if (angular.isUndefined(vm.invenioRecordsEndpoints.self)) {
       // If the action url doesnt exists request it
       InvenioRecordsAPI.request({
         method: 'POST',
@@ -180,7 +180,7 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
           });
         });
 
-        if (vm.invenioRecordsEndpoints[type] !== undefined) {
+        if (!angular.isUndefined(vm.invenioRecordsEndpoints[type])) {
           InvenioRecordsAPI.request({
             url: vm.invenioRecordsEndpoints[type],
             method: (method || 'PUT').toUpperCase(),
@@ -210,8 +210,9 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
     * @function invenioRecordsHandler
     * @param {string} type - The action key from ``links`` object.
     * @param {string} method - The request method type i.e. GET, POST, PUT.
+    * @param {string} redirect_path - The url to redirect on success.
     */
-  function invenioRecordsHandler(type, method) {
+  function invenioRecordsHandler(type, method, redirect_path) {
 
     /**
       * After a successful request
@@ -226,11 +227,27 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
         action: type,
       });
 
+      // Update the endpoints
+      if (!angular.isUndefined(response.data.links)){
+        $rootScope.$broadcast(
+          'invenio.records.endpoints.updated', response.data.links
+        );
+      }
+
       // Trigger successful event for action
       $rootScope.$broadcast('invenio.records.action.success', type);
 
       // Stop loadig idicator
       $rootScope.$broadcast('invenio.records.loading.stop');
+      if (!angular.isUndefined(redirect_path) && redirect_path !== '') {
+        // Redirect to new location
+        var _url = redirect_path;
+        if (redirect_path.substr(0, 1) !== '/' && redirect_path.substr(0, 4) !== 'http') {
+          // Find the url
+          _url = vm.invenioRecordsEndpoints[redirect_path];
+        }
+        $window.location.href = _url;
+      }
     }
     /**
       * After an errored request
@@ -390,7 +407,7 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $location,
     */
   function invenioRecordsLocationUpdated(evt, endpoints) {
     // Change the location only if html exists
-    if (endpoints.html !== undefined) {
+    if (!angular.isUndefined(endpoints.html)) {
       // ¯\_(ツ)_/¯ https://github.com/angular/angular.js/issues/3924
       var parser = document.createElement('a');
       parser.href = endpoints.html;
@@ -450,6 +467,7 @@ InvenioRecordsCtrl.$inject = [
   '$scope',
   '$rootScope',
   '$q',
+  '$window',
   '$location',
   'InvenioRecordsAPI',
 ];

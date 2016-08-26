@@ -33,10 +33,18 @@ describe('testing directive invenio-records-actions', function() {
   var scope;
   var template;
 
+  var windowObj = {location: {href: ''}};
+
   // Inject the angular modules
   beforeEach(angular.mock.module('invenioRecords', 'templates', 'schemaForm',
     'ngSanitize', 'mgcrea.ngStrap', 'mgcrea.ngStrap.modal',
     'pascalprecht.translate', 'ui.select', 'mgcrea.ngStrap.select'));
+
+  beforeEach(function() {
+    angular.mock.module(function($provide) {
+      $provide.value('$window', windowObj);
+    });
+  });
 
   beforeEach(inject(function(
       _$controller_, _$compile_, _$rootScope_, _$httpBackend_
@@ -65,6 +73,7 @@ describe('testing directive invenio-records-actions', function() {
     $httpBackend.whenPOST('/api/deposit/init').respond(200, init);
     $httpBackend.whenPOST('/api/deposit/depositions/45779/actions/publish').respond(200, {});
     $httpBackend.whenPUT('/api/deposit/depositions/45779').respond(200, {});
+    $httpBackend.whenDELETE('/api/deposit/depositions/45779').respond(200, {});
     $httpBackend.whenDELETE('gotham city://batman/sucess').respond(200, {});
     $httpBackend.whenPOST('gotham city://batman/sucess').respond(200, init);
     $httpBackend.whenGET('/static/node_modules/invenio-records-js/dist/templates/default.html').respond(200, '');
@@ -270,6 +279,35 @@ describe('testing directive invenio-records-actions', function() {
 
     // Expect no errors
     expect(scope.recordsVM.invenioRecordsAlert).to.be.equal(null);
+  });
+
+  it('should trigger action event for save with redirect', function() {
+    // Spy the broadcast
+    var spy = sinon.spy($rootScope, '$broadcast');
+
+    // Complile&Digest here to catch the event
+    // The directive's template
+    template = '<invenio-records ' +
+              'initialization="metropolitan://superman/init" ' +
+              'form="/example/static/json/form.json" ' +
+              'schema="/example/static/json/schema.json"> ' +
+              '<invenio-records-actions ' +
+              'template="src/invenio-records-js/templates/actions.html"> '+
+              '</invenio-records-actions>'+
+            '</invenio-records>';
+    // Compile
+    template = $compile(template)(scope);
+    // Digest
+    scope.$digest();
+
+    // Flash responses to trigger the events
+    $httpBackend.flush();
+
+    // Trigger an event
+    scope.recordsVM.actionHandler('self', 'put', '/deposit');
+
+    // Should trigger an event
+    spy.should.have.been.called.twice;
   });
 
   it('should trigger error for delete', function() {
