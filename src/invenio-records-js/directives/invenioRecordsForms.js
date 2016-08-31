@@ -162,18 +162,20 @@ function invenioRecordsForm($q, schemaFormDecorators, InvenioRecordsAPI,
       // display this value.
       // This also happens when the user clicks on a suggestion or on the
       // suggestion field. In this case, return the previous suggestions.
-      // NOTE: This is a good place to handle special values/configurations of
-      // autocomplete fields.
       if (query === '') {
-        if (scope.lastSuggestions) {
-          return scope.lastSuggestions;
+        if (scope.lastSuggestions[options.url]) {
+          var defer = $q.defer();
+          defer.resolve(scope.lastSuggestions[options.url]);
+          return defer.promise;
         } else if (options.scope && typeof options.scope.insideModel === 'string') {
+          // Pre-process the query value/identifier
           query = options.scope.insideModel;
+          query = scope.$eval(options.processQuery || 'query', {query: query});
         }
       }
       if (query && options.url !== undefined) {
         // Parse the url parameters
-        args = angular.extend({},
+        args = angular.extend({}, args,
           {
             url: _urlParser(options.url, options.urlParameters, query),
             method: 'GET',
@@ -183,10 +185,13 @@ function invenioRecordsForm($q, schemaFormDecorators, InvenioRecordsAPI,
         );
       }
       return _suggestEngine(args, options.map).then(function(response) {
-        scope.lastSuggestions = response;
+        // Store results for the specific endpoint
+        scope.lastSuggestions[options.url] = response;
         return response;
       });
     }
+    // Initialize last suggestions storage
+    scope.lastSuggestions = {};
     // Attach to the scope
     scope.autocompleteSuggest = autocompleteSuggest;
   }
