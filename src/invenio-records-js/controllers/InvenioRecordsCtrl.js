@@ -185,6 +185,7 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
             url: vm.invenioRecordsEndpoints[type],
             method: (method || 'PUT').toUpperCase(),
             data: {
+              '$schema': vm.invenioRecordsEndpoints.schema,
               metadata: _data
             },
             headers: vm.invenioRecordsArgs.headers || {}
