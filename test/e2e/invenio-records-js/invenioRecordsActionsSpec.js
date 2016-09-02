@@ -29,6 +29,7 @@ describe('testing directive invenio-records-actions', function() {
   var $controller;
   var $httpBackend;
   var $rootScope;
+  var $timeout;
   var ctrl;
   var scope;
   var template;
@@ -47,7 +48,7 @@ describe('testing directive invenio-records-actions', function() {
   });
 
   beforeEach(inject(function(
-      _$controller_, _$compile_, _$rootScope_, _$httpBackend_
+      _$controller_, _$compile_, _$rootScope_, _$httpBackend_, _$timeout_
     ) {
     // Template compiler
     $compile = _$compile_;
@@ -57,6 +58,8 @@ describe('testing directive invenio-records-actions', function() {
     $rootScope = _$rootScope_;
     // The http backend
     $httpBackend = _$httpBackend_;
+    // The timeout,
+    $timeout = _$timeout_;
 
    // Expected requests responses
     // Record Schema
@@ -147,6 +150,9 @@ describe('testing directive invenio-records-actions', function() {
     // Should trigger an event
     spy.should.have.been.called.twice;
 
+    // Flush timeout
+    $timeout.flush();
+
     // Expect no errors
     expect(scope.recordsVM.invenioRecordsAlert).to.be.equal(null);
 
@@ -215,6 +221,9 @@ describe('testing directive invenio-records-actions', function() {
 
     // Expect error
     var error = 'The action type is not supported.';
+
+    // Flush timeout
+    $timeout.flush();
 
     // Expect the message to be
     expect(scope.recordsVM.invenioRecordsAlert.data.message).to.be.equal(error);
@@ -337,6 +346,8 @@ describe('testing directive invenio-records-actions', function() {
     // Expect error
     var error = 'Bruce Wayne is with Wonder Woman and Superman right now!';
 
+    // Flush timeout
+    $timeout.flush();
     // Expect the message to be
     expect(scope.recordsVM.invenioRecordsAlert.data.message).to.be.equal(error);
   });
@@ -366,7 +377,8 @@ describe('testing directive invenio-records-actions', function() {
     $httpBackend.flush();
     // Expect error
     var error = 'Bruce Wayne is with Wonder Woman and Superman right now!';
-
+    // Flush timeout
+    $timeout.flush();
     // Expect the message to be
     expect(scope.recordsVM.invenioRecordsAlert.data.message).to.be.equal(error);
   });

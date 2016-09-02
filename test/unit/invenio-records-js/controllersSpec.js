@@ -27,6 +27,7 @@ describe('Unit: testing controllers', function() {
 
   var $controller;
   var $rootScope;
+  var $timeout;
   var $location;
   var ctrl;
   var InvenioRecordsAPI;
@@ -36,7 +37,7 @@ describe('Unit: testing controllers', function() {
   beforeEach(angular.mock.module('invenioRecords'));
 
   beforeEach(inject(function(_$controller_, _$rootScope_,
-      _$location_, _InvenioRecordsAPI_) {
+      _$location_, _InvenioRecordsAPI_, _$timeout_) {
     // Controller
     $controller = _$controller_;
     // The Scope
@@ -45,6 +46,8 @@ describe('Unit: testing controllers', function() {
     $location = _$location_;
     // Set the scope
     scope = $rootScope;
+    // Set the timout
+    $timeout = _$timeout_;
     // Set the service
     InvenioRecordsAPI = _InvenioRecordsAPI_;
     // The controller
@@ -89,6 +92,8 @@ describe('Unit: testing controllers', function() {
         message: 'Bruce Wayne is not Superman Clark Kent is, dah!'
       }
     });
+
+    $timeout.flush();
 
     expect(ctrl.invenioRecordsAlert.data.message).to.be.equal(
       'Bruce Wayne is not Superman Clark Kent is, dah!'

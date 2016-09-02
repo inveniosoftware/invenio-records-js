@@ -28,6 +28,7 @@ describe('testing directive invenio-records-error', function() {
   var $compile;
   var $httpBackend;
   var $rootScope;
+  var $timeout;
   var scope;
   var template;
 
@@ -37,13 +38,16 @@ describe('testing directive invenio-records-error', function() {
   // Load the templates
   beforeEach(angular.mock.module('templates'));
 
-  beforeEach(inject(function(_$compile_, _$rootScope_, _$httpBackend_) {
+  beforeEach(inject(function(_$compile_, _$rootScope_, _$httpBackend_,
+    _$timeout_) {
     // Template compiler
     $compile = _$compile_;
     // The Scope
     $rootScope = _$rootScope_;
     // The http backend
     $httpBackend = _$httpBackend_;
+    // The timeout
+    $timeout = _$timeout_;
     // Expected requests responses
     // Record Schema
     var schema = readJSON('test/fixtures/records.json');
@@ -82,6 +86,9 @@ describe('testing directive invenio-records-error', function() {
       }
     };
     scope.$broadcast('invenio.records.alert', message);
+
+    // Flush timeout
+    $timeout.flush();
     expect(scope.recordsVM.invenioRecordsAlert.data)
       .to.deep.equal(message.data);
 

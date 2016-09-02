@@ -29,7 +29,7 @@
   *    Invenio records controller.
   */
 function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
-  InvenioRecordsAPI) {
+    $timeout, InvenioRecordsAPI) {
 
   // Parameters
 
@@ -357,7 +357,9 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
     // Reset the error
     vm.invenioRecordsAlert = null;
     // Attach the error to the scope
-    vm.invenioRecordsAlert = data;
+    $timeout(function() {
+      vm.invenioRecordsAlert = data;
+    }, 0);
   }
 
   /**
@@ -469,6 +471,7 @@ InvenioRecordsCtrl.$inject = [
   '$q',
   '$window',
   '$location',
+  '$timeout',
   'InvenioRecordsAPI',
 ];
 
