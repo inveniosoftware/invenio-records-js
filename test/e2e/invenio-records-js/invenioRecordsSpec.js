@@ -164,4 +164,29 @@ describe('testing directive invenio-records', function() {
     // Digest
     scope.$digest();
   });
+
+  it('should have the links from the directive', function() {
+    // Spy the broadcast
+    var spy = sinon.spy($rootScope, '$broadcast');
+
+    // Complile&Digest here to catch the event
+    // The directive's template
+    template = '<invenio-records ' +
+              'extra-params="{}" ' +
+              'record=\'{}\' ' +
+              'form="/static/json/form.json" ' +
+              'links=\'{"self": "/jessica jones"}\'' +
+              'schema="/static/json/records.json"> ' +
+            '></invenio-records>';
+    // Compile
+    template = $compile(template)(scope);
+    // Digest
+    scope.$digest();
+
+    // Check if the event has been triggered
+    expect(spy.calledWith('invenio.records.init')).to.be.true;
+    $httpBackend.flush();
+    scope.$digest();
+    expect(spy.calledWith('invenio.records.endpoints.updated')).to.be.true;
+  });
 });

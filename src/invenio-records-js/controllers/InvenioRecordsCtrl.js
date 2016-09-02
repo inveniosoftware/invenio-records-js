@@ -155,78 +155,84 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
   }
 
   /**
-    * Records actions
+    * Do a data massage before sending with request
     * @memberof InvenioRecordsCtrl
-    * @function invenioRecordsActions
-    * @param {Object} evt - The event object.
-    * @param {String} type - The invenio action type.
-    * @param {String} method - The invenio request method.
-    * @param {Object} successCallback - Call function after success.
-    * @param {Object} errorCallback - Call function after error..
+    * @function cleanData
     */
-  function invenioRecordsActions(evt, type, method, successCallback, errorCallback) {
-
-    // Get the endpoints and do the request
-    getEndpoints().then(
-      function success() {
-        var _data = angular.merge({}, vm.invenioRecordsModel);
-
-        var unwatend = [[null], [{}], '', [undefined]];
-        angular.forEach(_data, function(value, key) {
-          angular.forEach(unwatend, function(_value) {
-            if (angular.equals(_value, value))  {
-              delete _data[key];
-            }
-          });
-        });
-
-        if (!angular.isUndefined(vm.invenioRecordsEndpoints[type])) {
-          InvenioRecordsAPI.request({
-            url: vm.invenioRecordsEndpoints[type],
-            method: (method || 'PUT').toUpperCase(),
-            data: {
-              metadata: _data
-            },
-            headers: vm.invenioRecordsArgs.headers || {}
-          }).then(
-            successCallback,
-            errorCallback
-          );
-        } else {
-          errorCallback({
-            type: 'danger',
-            data: {
-              message: 'The action type is not supported.'
-            }
-          });
+  function cleanData() {
+    var _data = angular.merge({}, {metadata: vm.invenioRecordsModel});
+    var unwatend = [[null], [{}], '', [undefined]];
+    angular.forEach(_data.metadata, function(value, key) {
+      angular.forEach(unwatend, function(_value) {
+        if (angular.equals(_value, value))  {
+          delete _data.metadata[key];
         }
-      },
-      errorCallback);
+      });
+    });
+    return _data;
+  }
+
+  /**
+    * Make the API request with the _data payload
+    * @memberof InvenioRecordsCtrl
+    * @function makeActionRequest
+    * @param {String} type - The action type (any existing key from ``links``).
+    * @param {String} method - The method (POST, PUT, DELETE).
+    */
+  function makeActionRequest(type, method) {
+    var _data = cleanData();
+    return InvenioRecordsAPI.request({
+      url: vm.invenioRecordsEndpoints[type],
+      method: (method || 'PUT').toUpperCase(),
+      data: _data,
+      headers: vm.invenioRecordsArgs.headers || {}
+    });
+  }
+
+  /**
+    * Handle the redirection after a success action if needed
+    * @memberof InvenioRecordsCtrl
+    * @function handleActionRedirection
+    * @param {String} redirect_path - The url to redirect on success.
+    */
+  function handleActionRedirection(redirect_path) {
+    // Redirect if defined
+    if (!angular.isUndefined(redirect_path) && redirect_path !== '') {
+      // Redirect to new location
+      var _url = redirect_path;
+      if (redirect_path.substr(0, 1) !== '/' && redirect_path.substr(0, 4) !== 'http') {
+        // Find the url
+        _url = vm.invenioRecordsEndpoints[redirect_path];
+      }
+      $window.location.href = _url;
+    }
   }
 
   /**
     * Action handler
     * @memberof InvenioRecordsCtrl
     * @function invenioRecordsHandler
-    * @param {string} type - The action key from ``links`` object.
-    * @param {string} method - The request method type i.e. GET, POST, PUT.
-    * @param {string} redirect_path - The url to redirect on success.
+    * @param {Array} actions - Actions array [[type, method]].
+    * @param {String} redirect_path - The url to redirect on success.
     */
-  function invenioRecordsHandler(type, method, redirect_path) {
+  function invenioRecordsHandler(actions, redirect_path) {
 
+    var _actions = (typeof(actions[0]) === 'string') ? [actions] : actions;
     /**
       * After a successful request
       * @memberof invenioRecordsHandler
       * @function actionSuccessful
-      * @param {Object} response - The action request response.
+      * @param {Object} responses - The promise action request responses.
       */
-    function actionSuccessful(response) {
+    function actionSuccessful(responses) {
+      // NOTE: We keep only the response of the last action!!
+      var response = responses[responses.length - 1] || {};
+
       $rootScope.$broadcast('invenio.records.alert', {
         type: 'success',
         data: response.data,
-        action: type,
+        action: _actions
       });
-
       // Update the endpoints
       if (!angular.isUndefined(response.data.links)){
         $rootScope.$broadcast(
@@ -235,19 +241,13 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
       }
 
       // Trigger successful event for action
-      $rootScope.$broadcast('invenio.records.action.success', type);
+      $rootScope.$broadcast('invenio.records.action.success', _actions);
 
       // Stop loadig idicator
       $rootScope.$broadcast('invenio.records.loading.stop');
-      if (!angular.isUndefined(redirect_path) && redirect_path !== '') {
-        // Redirect to new location
-        var _url = redirect_path;
-        if (redirect_path.substr(0, 1) !== '/' && redirect_path.substr(0, 4) !== 'http') {
-          // Find the url
-          _url = vm.invenioRecordsEndpoints[redirect_path];
-        }
-        $window.location.href = _url;
-      }
+
+      // Redirect if defined
+      handleActionRedirection(redirect_path || undefined);
     }
     /**
       * After an errored request
@@ -259,7 +259,6 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
       $rootScope.$broadcast('invenio.records.alert', {
         type: 'danger',
         data: response.data,
-        action: type
       });
 
       if (response.data.status === 400 && response.data.errors) {
@@ -295,12 +294,20 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
     // Start loading
     $rootScope.$broadcast('invenio.records.loading.start');
 
-    // Request submission
-    $scope.$broadcast(
-      'invenio.records.action',
-      type,
-      method,
-      actionSuccessful,
+    // Get the endpoints and do the request
+    getEndpoints().then(
+      function() {
+        var promises = [];
+        angular.forEach(_actions, function(action, index) {
+          this.push(
+            makeActionRequest(action[0], action[1])
+          );
+        }, promises);
+        $q.all(promises).then(
+          actionSuccessful,
+          actionErrored
+        );
+      },
       actionErrored
     );
   }
@@ -367,18 +374,22 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
     * @memberof InvenioRecordsCtrl
     * @function invenioRecordsActionFinished
     * @param {Object} evt - The event object.
-    * @param {Object} type - The action type
+    * @param {Object} types - The action types.
     */
-  function invenioRecordsActionSuccess(evt, type) {
+  function invenioRecordsActionSuccess(evt, types) {
     // Set the form to pristine if it's self or publish
-    if (['publish', 'self'].indexOf(type) > -1) {
+    var _types = [];
+    // Get all the types requested
+    angular.forEach(types, function(item, index) {
+      this.push(item[0]);
+    }, _types);
+    // Change the form state
+    if (_types.indexOf('self') > -1) {
       $scope.depositionForm.$setPristine();
-      // Set the form to submitted if it's published
-      if (type === 'publish') {
-        $scope.depositionForm.$setSubmitted();
-      }
+    } else if (_types.indexOf('publish') > -1) {
+      $scope.depositionForm.$setPristine();
+      $scope.depositionForm.$setSubmitted();
     }
-    // Set the form to $invalid if it's deleted/discarded
   }
 
   /**
@@ -431,9 +442,6 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
   // Listener
 
   // Local
-
-  // When invenio.records action requested
-  $scope.$on('invenio.records.action', invenioRecordsActions);
 
   // When the module initialized
   $scope.$on('invenio.records.init', invenioRecordsInit);

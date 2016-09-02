@@ -102,6 +102,7 @@ describe('testing directive invenio-records-actions', function() {
     // Complile&Digest here to catch the event
     // The directive's template
     template = '<invenio-records ' +
+              'extra-params=\'{"data": {"jessica": "jones"}}\' '+
               'action="gotham city://batman/sucess" ' +
               'form="/example/static/json/form.json" ' +
               'schema="/example/static/json/schema.json"> ' +
@@ -116,6 +117,8 @@ describe('testing directive invenio-records-actions', function() {
     scope.$digest();
     // The rendered buttons should be ``2``
     expect(template.find('.btn').length).to.be.equal(5);
+
+    expect(scope.recordsVM.invenioRecordsArgs.data.jessica).to.be.equal('jones');
   });
 
   it('should trigger action event for save', function() {
@@ -195,8 +198,6 @@ describe('testing directive invenio-records-actions', function() {
 
     //Should trigger init
     expect(spy.calledWith('invenio.records.init')).to.be.true;
-    //Should trigger action
-    expect(spy.calledWith('invenio.records.action')).to.be.true;
     //Should trigger endpoints updated
     expect(spy.calledWith('invenio.records.endpoints.updated')).to.be.true;
     // Should trigger action success
@@ -213,20 +214,6 @@ describe('testing directive invenio-records-actions', function() {
 
     // Flash responses to trigger the events
     $httpBackend.flush();
-
-    scope.recordsVM.actionHandler('The Punisher Action');
-
-    // Digest
-    scope.$digest();
-
-    // Expect error
-    var error = 'The action type is not supported.';
-
-    // Flush timeout
-    $timeout.flush();
-
-    // Expect the message to be
-    expect(scope.recordsVM.invenioRecordsAlert.data.message).to.be.equal(error);
 
     // Check the validation
     scope.recordsVM.removeValidationMessage(
@@ -256,6 +243,7 @@ describe('testing directive invenio-records-actions', function() {
     // Should trigger action success
     expect(spy.calledWith('schemaForm.error.hello')).to.be.false;
   });
+
 
   it('should trigger action event for delete', function() {
      // Spy the broadcast
@@ -411,5 +399,111 @@ describe('testing directive invenio-records-actions', function() {
 
     // Should trigger an event
     spy.should.have.been.called.twice;
+  });
+
+  it('should trigger successful chained actions', function() {
+     // Spy the broadcast
+    var spy = sinon.spy($rootScope, '$broadcast');
+    var links = {
+      links: {
+        harley: '/harley/quinn/wins',
+        jessica: '/jessica/jones/wins',
+        kilgrave: '/kilgrave/wins',
+        jocker: '/jocker/wins',
+      }
+    }
+    var batman_link = {
+      links: {
+        batman: '/bruce/wayne'
+      }
+    };
+    // Request expected
+    $httpBackend.whenPOST('jessica jones://herley/quinn').respond(200, links);
+    $httpBackend.whenPOST('/harley/quinn/wins').respond(200, {});
+    $httpBackend.whenPUT('/jessica/jones/wins').respond(200, batman_link);
+    // Complile&Digest here to catch the event
+    // The directive's template
+    template = '<invenio-records ' +
+              'initialization="jessica jones://herley/quinn" ' +
+              'form="/example/static/json/form.json" ' +
+              'record=\'{"a": "", "b": "c"}\' ' +
+              'schema="/example/static/json/schema.json"> ' +
+              '<invenio-records-actions ' +
+              'template="src/invenio-records-js/templates/actions.html"> '+
+              '</invenio-records-actions>'+
+            '</invenio-records>';
+    // Compile
+    template = $compile(template)(scope);
+    // Digest
+    scope.$digest();
+
+    // Flash responses to trigger the events
+    $httpBackend.flush();
+
+    // Do a chained action
+    scope.recordsVM.actionHandler([
+      ['harley', 'POST'],
+      ['jessica', 'PUT'],
+    ]);
+
+    // Flash responses to trigger the events
+    $httpBackend.flush();
+    // Expected the new links to be added
+    expect(scope.recordsVM.invenioRecordsEndpoints.batman).to.be.equal('/bruce/wayne');
+    // Expect success action
+    expect(spy.calledWith('invenio.records.action.success')).to.be.true;
+  });
+
+  it('should trigger errrored chained actions', function() {
+     // Spy the broadcast
+    var spy = sinon.spy($rootScope, '$broadcast');
+    var links = {
+      links: {
+        kilgrave: '/kilgrave/wins',
+        jocker: '/jocker/wins',
+      }
+    };
+    var message = {
+      message: 'Bring Bruce Wayne back!'
+    };
+    // Request expected
+    $httpBackend.whenPOST('jessica jones://herley/quinn').respond(200, links);
+    $httpBackend.whenPUT('/kilgrave/wins').respond(200, {});
+    $httpBackend.whenPOST('/jocker/wins').respond(400, message);
+    // Complile&Digest here to catch the event
+    // The directive's template
+    template = '<invenio-records ' +
+              'initialization="jessica jones://herley/quinn" ' +
+              'form="/example/static/json/form.json" ' +
+              'record=\'{"a": "", "b": [null]}\' ' +
+              'schema="/example/static/json/schema.json"> ' +
+              '<invenio-records-actions ' +
+              'template="src/invenio-records-js/templates/actions.html"> '+
+              '</invenio-records-actions>'+
+            '</invenio-records>';
+    // Compile
+    template = $compile(template)(scope);
+    // Digest
+    scope.$digest();
+
+    // Flash responses to trigger the events
+    $httpBackend.flush();
+
+    // Do a chained action
+    scope.recordsVM.actionHandler([
+      ['kilgrave', 'PUT'],
+      ['jocker', 'POST'],
+    ]);
+
+    // Flash responses to trigger the events
+    $httpBackend.flush();
+    // Flash the timeout
+    $timeout.flush();
+    // Force digest
+    scope.$digest();
+    // Expected the error
+    expect(scope.recordsVM.invenioRecordsAlert.data.message).to.be.equal(message.message);
+    // Expect error event
+    expect(spy.calledWith('invenio.records.action.error')).to.be.true;
   });
 });
