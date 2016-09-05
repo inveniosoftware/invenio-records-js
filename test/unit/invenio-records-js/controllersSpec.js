@@ -157,4 +157,20 @@ describe('Unit: testing controllers', function() {
     // Location should be
     expect($location.url()).to.be.equal('/');
   });
+
+  it('should return the data clean', function() {
+    var dirty = {
+      first: [null],
+      second: [{}],
+      third: '',
+      forth: [undefined],
+      newyork: 'Jessica Jones',
+      metropolis: 'Harley Quinn'
+    };
+    var clean = InvenioRecordsAPI.cleanData(dirty);
+    expect(clean).to.deep.equal({
+      newyork: 'Jessica Jones',
+      metropolis: 'Harley Quinn'
+    });
+  });
 });

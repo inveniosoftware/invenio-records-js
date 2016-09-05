@@ -93,16 +93,17 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
     $rootScope.$broadcast('invenio.records.loading.start');
     // Assign the model
     vm.invenioRecordsModel = angular.copy(record);
+    // Assign endpoints
+    vm.invenioRecordsEndpoints = angular.merge(
+      {},
+      endpoints
+    );
+
     // Assign the args
     vm.invenioRecordsArgs = angular.merge(
       {},
       vm.invenioRecordsArgs,
       args
-    );
-    // Assign endpoints
-    vm.invenioRecordsEndpoints = angular.merge(
-      {},
-      endpoints
     );
 
     if (Object.keys(links).length > 0) {
@@ -131,13 +132,17 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
   function getEndpoints(){
     var deferred = $q.defer();
     if (angular.isUndefined(vm.invenioRecordsEndpoints.self)) {
+      // Prepare the request
+      var request = InvenioRecordsAPI.prepareRequest(
+        vm.invenioRecordsEndpoints.initialization,
+        'POST',
+        {},
+        vm.invenioRecordsArgs,
+        vm.invenioRecordsEndpoints
+      );
       // If the action url doesnt exists request it
-      InvenioRecordsAPI.request({
-        method: 'POST',
-        url: vm.invenioRecordsEndpoints.initialization,
-        data: {},
-        headers: vm.invenioRecordsArgs.headers || {}
-      }).then(function success(response) {
+      InvenioRecordsAPI.request(request)
+        .then(function success(response) {
         // Upadate the endpoints
         $rootScope.$broadcast(
           'invenio.records.endpoints.updated', response.data.links
@@ -155,38 +160,21 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
   }
 
   /**
-    * Do a data massage before sending with request
-    * @memberof InvenioRecordsCtrl
-    * @function cleanData
-    */
-  function cleanData() {
-    var _data = angular.merge({}, {metadata: vm.invenioRecordsModel});
-    var unwatend = [[null], [{}], '', [undefined]];
-    angular.forEach(_data.metadata, function(value, key) {
-      angular.forEach(unwatend, function(_value) {
-        if (angular.equals(_value, value))  {
-          delete _data.metadata[key];
-        }
-      });
-    });
-    return _data;
-  }
-
-  /**
-    * Make the API request with the _data payload
+    * Make the API request for the requested action
     * @memberof InvenioRecordsCtrl
     * @function makeActionRequest
     * @param {String} type - The action type (any existing key from ``links``).
     * @param {String} method - The method (POST, PUT, DELETE).
     */
   function makeActionRequest(type, method) {
-    var _data = cleanData();
-    return InvenioRecordsAPI.request({
-      url: vm.invenioRecordsEndpoints[type],
-      method: (method || 'PUT').toUpperCase(),
-      data: _data,
-      headers: vm.invenioRecordsArgs.headers || {}
-    });
+    var request = InvenioRecordsAPI.prepareRequest(
+      vm.invenioRecordsEndpoints[type],
+      method,
+      vm.invenioRecordsModel,
+      vm.invenioRecordsArgs,
+      vm.invenioRecordsEndpoints
+    );
+    return InvenioRecordsAPI.request(request);
   }
 
   /**
@@ -428,7 +416,6 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
       $location.replace();
     }
   }
-
 
   // Attach fuctions to the scope
 
