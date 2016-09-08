@@ -1,8 +1,8 @@
 ===========================
- Invenio-Records-JS v0.0.5
+ Invenio-Records-JS v0.0.6
 ===========================
 
-Invenio-Records-JS v0.0.5 was released on September 1, 2016.
+Invenio-Records-JS v0.0.6 was released on September 8, 2016.
 
 About
 -----
