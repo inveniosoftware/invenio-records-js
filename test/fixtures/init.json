@@ -9,11 +9,9 @@
     "publish": "/api/deposit/depositions/45779/actions/publish",
     "self": "/api/deposit/depositions/45779"
   },
-  "metadata": {
-    "prereserve_doi": {
-      "doi": "10.5072/zenodo.45779",
-      "recid": 45779
-    }
+  "prereserve_doi": {
+    "doi": "10.5072/zenodo.45779",
+    "recid": 45779
   },
   "modified": "2016-06-27T13:35:49.835095+00:00",
   "owner": 1,

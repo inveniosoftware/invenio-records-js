@@ -256,7 +256,7 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
           angular.forEach(response.data.errors, function(value) {
             try {
               $scope.$broadcast(
-                'schemaForm.error.' + value.field.replace('metadata.', ''),
+                'schemaForm.error.' + value.field,
                 'backendValidationError',
                 value.message
               );
