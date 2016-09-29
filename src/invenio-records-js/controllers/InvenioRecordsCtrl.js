@@ -29,7 +29,7 @@
   *    Invenio records controller.
   */
 function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
-    $timeout, InvenioRecordsAPI) {
+    $timeout, InvenioRecordsAPI, ChainedPromise) {
 
   // Parameters
 
@@ -160,6 +160,20 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
   }
 
   /**
+    * Wrap the action request
+    * @memberof InvenioRecordsCtrl
+    * @function wrapAction
+    * @param {String} type - The action type (any existing key from ``links``).
+    * @param {String} method - The method (POST, PUT, DELETE).
+    */
+  function wrapAction(type, method) {
+    function _doAction() {
+      return makeActionRequest(type, method);
+    }
+    return _doAction;
+  }
+
+  /**
     * Make the API request for the requested action
     * @memberof InvenioRecordsCtrl
     * @function makeActionRequest
@@ -214,7 +228,7 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
       */
     function actionSuccessful(responses) {
       // NOTE: We keep only the response of the last action!!
-      var response = responses[responses.length - 1] || {};
+      var response = responses[responses.length - 1] || responses;
 
       $rootScope.$broadcast('invenio.records.alert', {
         type: 'success',
@@ -243,7 +257,9 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
       * @function actionErrored
       * @param {Object} response - The action request response.
       */
-    function actionErrored(response) {
+    function actionErrored(responses) {
+      // NOTE: We keep only the response of the last action!!
+      var response = responses[responses.length - 1] || responses;
       $rootScope.$broadcast('invenio.records.alert', {
         type: 'danger',
         data: response.data,
@@ -254,19 +270,11 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
         var promise = deferred.promise;
         promise.then(function displayValidationErrors() {
           angular.forEach(response.data.errors, function(value) {
-            try {
-              $scope.$broadcast(
-                'schemaForm.error.' + value.field,
-                'backendValidationError',
-                value.message
-              );
-            } catch(error) {
-              $scope.$broadcast(
-                'schemaForm.error.' + value.field,
-                'backendValidationError',
-                value.message
-              );
-            }
+            $scope.$broadcast(
+              'schemaForm.error.' + value.field,
+              'backendValidationError',
+              value.message
+            );
           });
         }).then(function stopLoading() {
           $rootScope.$broadcast('invenio.records.loading.stop');
@@ -288,10 +296,11 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
         var promises = [];
         angular.forEach(_actions, function(action, index) {
           this.push(
-            makeActionRequest(action[0], action[1])
+            wrapAction(action[0], action[1])
           );
         }, promises);
-        $q.all(promises).then(
+        // Do chained promise
+        ChainedPromise.promise(promises).then(
           actionSuccessful,
           actionErrored
         );
@@ -468,6 +477,7 @@ InvenioRecordsCtrl.$inject = [
   '$location',
   '$timeout',
   'InvenioRecordsAPI',
+  'ChainedPromise',
 ];
 
 angular.module('invenioRecords.controllers')

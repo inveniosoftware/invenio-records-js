@@ -24,12 +24,14 @@
 angular.module('invenioRecords.config', []);
 angular.module('invenioRecords.controllers', []);
 angular.module('invenioRecords.directives', []);
+angular.module('invenioRecords.factories', []);
 angular.module('invenioRecords.services', []);
 
 // Setup everyhting
 angular.module('invenioRecords', [
   'schemaForm',
   'invenioRecords.config',
+  'invenioRecords.factories',
   'invenioRecords.services',
   'invenioRecords.controllers',
   'invenioRecords.directives',

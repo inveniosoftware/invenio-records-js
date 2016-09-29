@@ -454,7 +454,7 @@ describe('testing directive invenio-records-actions', function() {
     expect(spy.calledWith('invenio.records.action.success')).to.be.true;
   });
 
-  it('should trigger errrored chained actions', function() {
+  it('should trigger errored chained actions', function() {
      // Spy the broadcast
     var spy = sinon.spy($rootScope, '$broadcast');
     var links = {
@@ -464,7 +464,9 @@ describe('testing directive invenio-records-actions', function() {
       }
     };
     var message = {
-      message: 'Bring Bruce Wayne back!'
+      message: 'Bring Bruce Wayne back!',
+      status: 400,
+      errors: ['error'],
     };
     // Request expected
     $httpBackend.whenPOST('jessica jones://herley/quinn').respond(200, links);
@@ -499,10 +501,10 @@ describe('testing directive invenio-records-actions', function() {
     $httpBackend.flush();
     // Flash the timeout
     $timeout.flush();
+    // Alert
+    expect(scope.recordsVM.invenioRecordsAlert.data.message).to.be.equal(message.message);
     // Force digest
     scope.$digest();
-    // Expected the error
-    expect(scope.recordsVM.invenioRecordsAlert.data.message).to.be.equal(message.message);
     // Expect error event
     expect(spy.calledWith('invenio.records.action.error')).to.be.true;
   });
