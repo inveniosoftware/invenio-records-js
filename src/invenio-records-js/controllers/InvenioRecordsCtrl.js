@@ -416,13 +416,18 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
     * @param {Object} endpoints - The object with the endpoints.
     */
   function invenioRecordsLocationUpdated(evt, endpoints) {
-    // Change the location only if html exists
     if (!angular.isUndefined(endpoints.html)) {
-      // ¯\_(ツ)_/¯ https://github.com/angular/angular.js/issues/3924
-      var parser = document.createElement('a');
-      parser.href = endpoints.html;
-      $location.url(parser.pathname);
-      $location.replace();
+      // Get the pathname of localhost
+      var _current = document.createElement('a');
+      _current.href = $location.path();
+      // Get the pathname of endpoints
+      var _endpoints = document.createElement('a');
+      _endpoints.href = endpoints.html;
+      // Check if are the same
+      if (_endpoints.pathname !== _current.pathname) {
+        $location.url(_endpoints.pathname);
+        $location.replace();
+      }
     }
   }
 
