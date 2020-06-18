@@ -11,7 +11,7 @@
     "url": "https://github.com/inveniosoftware/invenio-records-js"
   },
   "dependencies": {
-    "angular": "=1.4.8",
+    "angular": "=1.8.0",
     "angular-mocks": "=1.4.8",
     "angular-scenario": "=1.4.8",
     "angular-schema-form": "~0.8.13",
